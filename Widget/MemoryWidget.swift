@@ -9,6 +9,7 @@ struct MemoryEntry: TimelineEntry {
     let pressure: Int32
     /// Lista gravada pelo app Disco (o widget não enxerga outros processos por causa do sandbox).
     var apps: [TopApp] = []
+    var spins = 0
 
     var fraction: Double { total > 0 ? min(Double(used) / Double(total), 1) : 0 }
     var percent: String { "\(Int((fraction * 100).rounded()))%" }
@@ -26,7 +27,7 @@ struct MemoryEntry: TimelineEntry {
         let (total, used, level) = Metrics.memory()
         let snapshot = TopAppsSnapshot.load()
         let fresh = snapshot.map { Date.now.timeIntervalSince($0.date) < 10 * 60 } ?? false
-        return MemoryEntry(date: .now, total: total, used: used, pressure: level, apps: fresh ? snapshot!.apps : [])
+        return MemoryEntry(date: .now, total: total, used: used, pressure: level, apps: fresh ? snapshot!.apps : [], spins: Spins.count("MemoryWidget"))
     }
 }
 
@@ -131,7 +132,7 @@ struct MemoryWidgetView: View {
                 }
                 .monospacedDigit()
                 Spacer(minLength: 0)
-                VStack { RefreshButton(); Spacer(minLength: 0) }
+                VStack { RefreshButton(kind: "MemoryWidget", spins: entry.spins); Spacer(minLength: 0) }
             }
             .fixedSize(horizontal: false, vertical: true)
             AppList(apps: entry.apps, limit: 4, spacing: 6, compact: true)
@@ -161,7 +162,7 @@ struct MemoryWidgetView: View {
                     Text("Memória")
                         .font(.system(size: 13, weight: .semibold))
                     Spacer(minLength: 0)
-                    RefreshButton()
+                    RefreshButton(kind: "MemoryWidget", spins: entry.spins)
                 }
                 AppList(apps: entry.apps, limit: 3, spacing: 7)
                 Spacer(minLength: 0)
@@ -184,7 +185,7 @@ struct MemoryWidgetView: View {
                 }
                 .monospacedDigit()
                 Spacer(minLength: 0)
-                VStack { RefreshButton(); Spacer() }
+                VStack { RefreshButton(kind: "MemoryWidget", spins: entry.spins); Spacer() }
             }
             .fixedSize(horizontal: false, vertical: true)
             Divider()

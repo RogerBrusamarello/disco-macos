@@ -41,12 +41,11 @@ final class StatusController: NSObject, NSPopoverDelegate {
     init(onClean: @escaping () -> Void, onKill: @escaping (String) -> Void) {
         super.init()
         if let button = item.button {
-            button.imagePosition = .imageRight
             button.target = self
             button.action = #selector(toggle)
         }
         refreshIcon()
-        iconTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+        iconTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.refreshIcon() }
         }
         popover.behavior = .transient
@@ -83,44 +82,80 @@ final class StatusController: NSObject, NSPopoverDelegate {
         refreshIcon()
     }
 
-    /// "84%" + ícone de disco que enche, no estilo do ícone de bateria.
+    /// RAM e disco lado a lado: "78% [chip]  84% [disco]", cada ícone enche conforme o uso.
     func refreshIcon() {
         guard let button = item.button else { return }
         let disk = Metrics.disk()
-        let fraction = disk.total > 0 ? Double(disk.total - disk.free) / Double(disk.total) : 0
-        let critical = fraction >= 0.9
-        button.image = gaugeImage(fraction: fraction, critical: critical)
-        button.attributedTitle = NSAttributedString(
-            string: "\(Int((fraction * 100).rounded()))% ",
-            attributes: [
-                .font: NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .medium),
-                .baselineOffset: 0.5,
-            ]
-        )
-        button.toolTip = "Macintosh HD: \(gb(disk.free)) GB livres"
+        let memory = Metrics.memory()
+        let diskFraction = disk.total > 0 ? Double(disk.total - disk.free) / Double(disk.total) : 0
+        let memoryFraction = memory.total > 0 ? min(Double(memory.used) / Double(memory.total), 1) : 0
+        button.image = menuBarImage([
+            Gauge(symbol: "memorychip.fill", fraction: memoryFraction, critical: memory.pressure == 4),
+            Gauge(symbol: "internaldrive.fill", fraction: diskFraction, critical: diskFraction >= 0.9),
+        ], height: NSStatusBar.system.thickness)
+        button.toolTip = "Memória: \(ramGB(memory.used)) de \(ramGB(memory.total)) GB · \(pressureLabel(memory.pressure))\n"
+            + "Macintosh HD: \(gb(disk.free)) GB livres"
     }
+}
 
-    /// Ícone de disco que "enche" da esquerda para a direita conforme o uso.
-    private func gaugeImage(fraction: Double, critical: Bool) -> NSImage {
-        let config = NSImage.SymbolConfiguration(pointSize: 15, weight: .regular)
-        guard let symbol = NSImage(systemSymbolName: "internaldrive.fill", accessibilityDescription: "Disco")?
-            .withSymbolConfiguration(config) else { return NSImage() }
-        let image = NSImage(size: symbol.size, flipped: false) { rect in
-            symbol.draw(in: rect, from: .zero, operation: .sourceOver, fraction: 0.3)
-            NSGraphicsContext.saveGraphicsState()
-            NSBezierPath(rect: NSRect(x: 0, y: 0, width: rect.width * fraction, height: rect.height)).addClip()
-            symbol.draw(in: rect)
-            NSGraphicsContext.restoreGraphicsState()
-            if critical {
-                NSColor.systemRed.set()
-                rect.fill(using: .sourceAtop)
-            }
-            return true
-        }
-        // Template = segue a cor da barra de menus; vermelho precisa ser imagem colorida.
-        image.isTemplate = !critical
-        return image
+struct Gauge {
+    let symbol: String
+    let fraction: Double
+    let critical: Bool
+}
+
+/// Texto e ícones numa imagem só, todos centralizados na mesma linha
+/// (centro da altura das maiúsculas = centro do contorno de cada símbolo).
+func menuBarImage(_ gauges: [Gauge], height: CGFloat) -> NSImage {
+    let anyCritical = gauges.contains(where: \.critical)
+    let font = NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .medium)
+    let config = NSImage.SymbolConfiguration(pointSize: 15, weight: .regular)
+    let textGap: CGFloat = 3, groupGap: CGFloat = 9
+
+    struct Part { let text: NSAttributedString; let textWidth: CGFloat; let symbol: NSImage; let gauge: Gauge }
+    let parts: [Part] = gauges.compactMap { g in
+        guard let symbol = NSImage(systemSymbolName: g.symbol, accessibilityDescription: nil)?
+            .withSymbolConfiguration(config) else { return nil }
+        let text = NSAttributedString(string: "\(Int((g.fraction * 100).rounded()))%", attributes: [
+            .font: font,
+            // Template usa só o alfa; com algo em vermelho a imagem é colorida e o texto segue a barra.
+            .foregroundColor: anyCritical ? NSColor.labelColor : NSColor.black,
+        ])
+        return Part(text: text, textWidth: ceil(text.size().width), symbol: symbol, gauge: g)
     }
+    let width = parts.reduce(0) { $0 + $1.textWidth + textGap + $1.symbol.alignmentRect.width }
+        + groupGap * CGFloat(max(parts.count - 1, 0))
+
+    let image = NSImage(size: NSSize(width: ceil(width), height: height), flipped: false) { rect in
+        let mid = rect.midY
+        let baseline = (mid - font.capHeight / 2).rounded()
+        var x: CGFloat = 0
+        for part in parts {
+            part.text.draw(at: NSPoint(x: x, y: baseline + font.descender))
+            x += part.textWidth + textGap
+
+            let glyph = part.symbol.alignmentRect
+            let symbolRect = NSRect(origin: NSPoint(x: x - glyph.minX, y: (mid - glyph.midY).rounded()), size: part.symbol.size)
+            let filled = NSRect(x: x, y: 0, width: glyph.width * part.gauge.fraction, height: rect.height)
+            let empty = NSRect(x: filled.maxX, y: 0, width: glyph.width - filled.width, height: rect.height)
+
+            for (clip, alpha) in [(empty, 0.3), (filled, 1.0)] {
+                NSGraphicsContext.saveGraphicsState()
+                NSBezierPath(rect: clip).addClip()
+                part.symbol.draw(in: symbolRect, from: .zero, operation: .sourceOver, fraction: alpha)
+                if anyCritical {
+                    (part.gauge.critical ? NSColor.systemRed : NSColor.labelColor).set()  // sourceAtop mantém o alfa já desenhado
+                    clip.fill(using: .sourceAtop)
+                }
+                NSGraphicsContext.restoreGraphicsState()
+            }
+            x += glyph.width + groupGap
+        }
+        return true
+    }
+    // Template = segue a cor da barra de menus; vermelho precisa ser imagem colorida.
+    image.isTemplate = !anyCritical
+    return image
 }
 
 private func icon(_ path: String) -> NSImage {

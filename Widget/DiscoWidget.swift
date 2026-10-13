@@ -3,22 +3,38 @@ import SwiftUI
 import AppIntents
 
 /// Botão interativo: o WidgetKit recarrega a timeline sozinho depois do perform().
+/// Conta os cliques por widget para o ↻ dar uma volta a cada atualização manual.
 struct RefreshIntent: AppIntent {
     static var title: LocalizedStringResource = "Atualizar"
-    func perform() async throws -> some IntentResult { .result() }
+
+    @Parameter(title: "Widget") var kind: String
+
+    init() {}
+    init(kind: String) { self.kind = kind }
+
+    func perform() async throws -> some IntentResult {
+        Spins.increment(kind)
+        return .result()
+    }
+}
+
+enum Spins {
+    static func count(_ kind: String) -> Int { UserDefaults.standard.integer(forKey: "spins.\(kind)") }
+    static func increment(_ kind: String) { UserDefaults.standard.set(count(kind) + 1, forKey: "spins.\(kind)") }
 }
 
 struct DiskEntry: TimelineEntry {
     let date: Date
     let total: Int64
     let free: Int64
+    var spins = 0
 
     var used: Int64 { max(total - free, 0) }
     var fraction: Double { total > 0 ? Double(used) / Double(total) : 0 }
 
     static func current() -> DiskEntry {
         let disk = Metrics.disk()
-        return DiskEntry(date: .now, total: disk.total, free: disk.free)
+        return DiskEntry(date: .now, total: disk.total, free: disk.free, spins: Spins.count("DiscoWidget"))
     }
 }
 
@@ -51,11 +67,16 @@ func systemIcon(_ path: String) -> NSImage {
 private let driveIcon = systemIcon("/")
 
 struct RefreshButton: View {
+    let kind: String
+    let spins: Int
+
     var body: some View {
-        Button(intent: RefreshIntent()) {
+        Button(intent: RefreshIntent(kind: kind)) {
             Image(systemName: "arrow.clockwise")
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(.secondary)
+                .rotationEffect(.degrees(Double(spins) * 360))
+                .animation(.easeInOut(duration: 0.7), value: spins)
                 .frame(width: 20, height: 20)
                 .contentShape(Rectangle())
         }
@@ -119,7 +140,7 @@ struct DiscoWidgetView: View {
             HStack(alignment: .top) {
                 UsageRing(fraction: entry.fraction, tint: entry.tint, icon: driveIcon, size: 54)
                 Spacer(minLength: 0)
-                RefreshButton()
+                RefreshButton(kind: "DiscoWidget", spins: entry.spins)
             }
             Spacer(minLength: 4)
             Text(entry.percent)
@@ -142,7 +163,7 @@ struct DiscoWidgetView: View {
                     Text("Macintosh HD")
                         .font(.system(size: 13, weight: .semibold))
                     Spacer(minLength: 0)
-                    RefreshButton()
+                    RefreshButton(kind: "DiscoWidget", spins: entry.spins)
                 }
                 Spacer(minLength: 2)
                 Text(entry.percent)
