@@ -1,0 +1,55 @@
+name: Disco
+options:
+  bundleIdPrefix: br.com.attodev
+  deploymentTarget:
+    macOS: "14.0"
+settings:
+  base:
+    DEVELOPMENT_TEAM: HM8VRSUTC3
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "Apple Development: ROGER BRUSAMARELLO (UJXDN537AZ)"
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  Disco:
+    type: application
+    platform: macOS
+    sources: [App, Shared]
+    entitlements:
+      path: App/App.entitlements
+      properties:
+        com.apple.security.application-groups: [HM8VRSUTC3.br.com.attodev.disco]
+    dependencies:
+      - target: DiscoWidgetExtension
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: Disco
+        LSUIElement: true
+        CFBundleURLTypes:
+          - CFBundleURLName: br.com.attodev.disco
+            CFBundleURLSchemes: [discowidget]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: br.com.attodev.disco
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_HARDENED_RUNTIME: YES
+  DiscoWidgetExtension:
+    type: app-extension
+    platform: macOS
+    sources: [Widget, Shared]
+    info:
+      path: Widget/Info.plist
+      properties:
+        CFBundleDisplayName: Disco
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: Widget/Widget.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.application-groups: [HM8VRSUTC3.br.com.attodev.disco]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: br.com.attodev.disco.widget

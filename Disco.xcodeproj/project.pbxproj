@@ -1,0 +1,470 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1ED6EE6DFD0C59FBF74B4218 /* DiscoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C644D4C3A070F0385FD0D87E /* DiscoApp.swift */; };
+		31E2E3532D94B010017DD75D /* Sampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 234F7280F804071E7C2FFE8C /* Sampler.swift */; };
+		3491ABFC72E168CA175FA310 /* MenuBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00BDE4D3ACC30594C0A6D7DF /* MenuBar.swift */; };
+		575AD0B86D349DFC9ABAD383 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43EAE6D3D958C174E1E82545 /* Metrics.swift */; };
+		671D8119B0AE1B904321F76F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 02309CA82E25474675BFFB79 /* Assets.xcassets */; };
+		884DF12251EA6E026900935A /* TopApps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6636640A469C60F2961B6E1B /* TopApps.swift */; };
+		8C12241DBF5BF5B5374086E0 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43EAE6D3D958C174E1E82545 /* Metrics.swift */; };
+		966B15BF9A6C95AE34D49025 /* MemoryWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E1E5C719673A787AAD3D3F9 /* MemoryWidget.swift */; };
+		A578C5BC7D6040369D9775E8 /* DiscoWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AC605F4E372C0010624E0E0 /* DiscoWidget.swift */; };
+		AA159C9B04203954AD3BDFC6 /* DiscoWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9BF2A8CEBF491AC0E08CF2FB /* DiscoWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		ED0F2B0C8489F9E4C69132BD /* TopApps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6636640A469C60F2961B6E1B /* TopApps.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		EBBF17F245BEC5618AFB185C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 22951140849F71B353B15612 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7775DCA9F7D0DAFB57EA464C;
+			remoteInfo = DiscoWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A87525259A428DFB70ED4E70 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				AA159C9B04203954AD3BDFC6 /* DiscoWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		00BDE4D3ACC30594C0A6D7DF /* MenuBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBar.swift; sourceTree = "<group>"; };
+		02309CA82E25474675BFFB79 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		023CED0141EC26949F7133D6 /* Disco.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Disco.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		168B10E7A94B7E6508B91EC9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		218C242E2F7E90721F544DE0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		234F7280F804071E7C2FFE8C /* Sampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sampler.swift; sourceTree = "<group>"; };
+		43EAE6D3D958C174E1E82545 /* Metrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Metrics.swift; sourceTree = "<group>"; };
+		5E1E5C719673A787AAD3D3F9 /* MemoryWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryWidget.swift; sourceTree = "<group>"; };
+		5EE192CFD040F3271EF56831 /* Widget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Widget.entitlements; sourceTree = "<group>"; };
+		6636640A469C60F2961B6E1B /* TopApps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopApps.swift; sourceTree = "<group>"; };
+		8AC605F4E372C0010624E0E0 /* DiscoWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoWidget.swift; sourceTree = "<group>"; };
+		9BF2A8CEBF491AC0E08CF2FB /* DiscoWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DiscoWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A784A75656C0073CBCEC810B /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
+		C644D4C3A070F0385FD0D87E /* DiscoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoApp.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		02EA2EEDA85E36F60811DB44 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				43EAE6D3D958C174E1E82545 /* Metrics.swift */,
+				6636640A469C60F2961B6E1B /* TopApps.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		0C7C10F3A54414558701EA72 /* Widget */ = {
+			isa = PBXGroup;
+			children = (
+				8AC605F4E372C0010624E0E0 /* DiscoWidget.swift */,
+				218C242E2F7E90721F544DE0 /* Info.plist */,
+				5E1E5C719673A787AAD3D3F9 /* MemoryWidget.swift */,
+				5EE192CFD040F3271EF56831 /* Widget.entitlements */,
+			);
+			path = Widget;
+			sourceTree = "<group>";
+		};
+		37AC652796B352DAA18F8A4A /* App */ = {
+			isa = PBXGroup;
+			children = (
+				A784A75656C0073CBCEC810B /* App.entitlements */,
+				02309CA82E25474675BFFB79 /* Assets.xcassets */,
+				C644D4C3A070F0385FD0D87E /* DiscoApp.swift */,
+				168B10E7A94B7E6508B91EC9 /* Info.plist */,
+				00BDE4D3ACC30594C0A6D7DF /* MenuBar.swift */,
+				234F7280F804071E7C2FFE8C /* Sampler.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		502CF85D1EE26F18C2C6A70F = {
+			isa = PBXGroup;
+			children = (
+				37AC652796B352DAA18F8A4A /* App */,
+				02EA2EEDA85E36F60811DB44 /* Shared */,
+				0C7C10F3A54414558701EA72 /* Widget */,
+				A1D8514EEC70F27DAF51C624 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A1D8514EEC70F27DAF51C624 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				023CED0141EC26949F7133D6 /* Disco.app */,
+				9BF2A8CEBF491AC0E08CF2FB /* DiscoWidgetExtension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7775DCA9F7D0DAFB57EA464C /* DiscoWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4493141251C1CBEC9D7CCA7B /* Build configuration list for PBXNativeTarget "DiscoWidgetExtension" */;
+			buildPhases = (
+				B5CEF1A6FF10185478EF6445 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DiscoWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = DiscoWidgetExtension;
+			productReference = 9BF2A8CEBF491AC0E08CF2FB /* DiscoWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		E7BFE10DF69CB95BECEA2E55 /* Disco */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A05A5338421C7A447F794A17 /* Build configuration list for PBXNativeTarget "Disco" */;
+			buildPhases = (
+				6DAB5F6979BAA013465E84DD /* Sources */,
+				2EC7F6ECF4538D3CBE527BE8 /* Resources */,
+				A87525259A428DFB70ED4E70 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4CDD9AFC0F121D632BB4A7D9 /* PBXTargetDependency */,
+			);
+			name = Disco;
+			packageProductDependencies = (
+			);
+			productName = Disco;
+			productReference = 023CED0141EC26949F7133D6 /* Disco.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		22951140849F71B353B15612 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					7775DCA9F7D0DAFB57EA464C = {
+						DevelopmentTeam = HM8VRSUTC3;
+						ProvisioningStyle = Manual;
+					};
+					E7BFE10DF69CB95BECEA2E55 = {
+						DevelopmentTeam = HM8VRSUTC3;
+						ProvisioningStyle = Manual;
+					};
+				};
+			};
+			buildConfigurationList = 045F1F0BEF4430B795405690 /* Build configuration list for PBXProject "Disco" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 502CF85D1EE26F18C2C6A70F;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = A1D8514EEC70F27DAF51C624 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E7BFE10DF69CB95BECEA2E55 /* Disco */,
+				7775DCA9F7D0DAFB57EA464C /* DiscoWidgetExtension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		2EC7F6ECF4538D3CBE527BE8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				671D8119B0AE1B904321F76F /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		6DAB5F6979BAA013465E84DD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1ED6EE6DFD0C59FBF74B4218 /* DiscoApp.swift in Sources */,
+				3491ABFC72E168CA175FA310 /* MenuBar.swift in Sources */,
+				8C12241DBF5BF5B5374086E0 /* Metrics.swift in Sources */,
+				31E2E3532D94B010017DD75D /* Sampler.swift in Sources */,
+				884DF12251EA6E026900935A /* TopApps.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B5CEF1A6FF10185478EF6445 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A578C5BC7D6040369D9775E8 /* DiscoWidget.swift in Sources */,
+				966B15BF9A6C95AE34D49025 /* MemoryWidget.swift in Sources */,
+				575AD0B86D349DFC9ABAD383 /* Metrics.swift in Sources */,
+				ED0F2B0C8489F9E4C69132BD /* TopApps.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4CDD9AFC0F121D632BB4A7D9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7775DCA9F7D0DAFB57EA464C /* DiscoWidgetExtension */;
+			targetProxy = EBBF17F245BEC5618AFB185C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		15AFA175D1C807E3DA9DA507 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Apple Development: ROGER BRUSAMARELLO (UJXDN537AZ)";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = HM8VRSUTC3;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		1C6EF809AFFE7DF944304FB2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = br.com.attodev.disco;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		261F5D0084518DDD815198BF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = br.com.attodev.disco;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		C5C0682321554A3383FEB6BC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Widget/Widget.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = Widget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = br.com.attodev.disco.widget;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		CB6ADC65A857636804E802DB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Widget/Widget.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = Widget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = br.com.attodev.disco.widget;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		F3244394D024F9F5E932174F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Apple Development: ROGER BRUSAMARELLO (UJXDN537AZ)";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = HM8VRSUTC3;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		045F1F0BEF4430B795405690 /* Build configuration list for PBXProject "Disco" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F3244394D024F9F5E932174F /* Debug */,
+				15AFA175D1C807E3DA9DA507 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		4493141251C1CBEC9D7CCA7B /* Build configuration list for PBXNativeTarget "DiscoWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C5C0682321554A3383FEB6BC /* Debug */,
+				CB6ADC65A857636804E802DB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A05A5338421C7A447F794A17 /* Build configuration list for PBXNativeTarget "Disco" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1C6EF809AFFE7DF944304FB2 /* Debug */,
+				261F5D0084518DDD815198BF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 22951140849F71B353B15612 /* Project object */;
+}

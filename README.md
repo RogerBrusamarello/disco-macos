@@ -1,0 +1,110 @@
+<p align="center">
+  <img src="docs/icon.png" width="128" alt="Ícone do Disco">
+</p>
+
+<h1 align="center">Disco</h1>
+
+<p align="center">
+  Widgets e ícone na barra de menus para acompanhar <b>disco</b> e <b>memória RAM</b> do Mac,<br>
+  com <b>limpeza de cache</b> e <b>forçar encerramento</b> em um clique.
+</p>
+
+<p align="center">
+  <a href="../../releases/latest"><b>⬇︎ Baixar Disco.dmg</b></a> · macOS 14 Sonoma ou mais recente · Apple Silicon e Intel
+</p>
+
+---
+
+## Widgets
+
+<p align="center">
+  <img src="docs/widgets.png" alt="Widgets de disco e memória nos tamanhos pequeno, médio e grande">
+</p>
+
+| Widget | Tamanhos | O que mostra |
+|---|---|---|
+| **Disco** | pequeno, médio | % usado, GB livres e botão **Limpar cache** |
+| **Memória** | pequeno, médio, grande | % usado, pressão de memória e os apps que mais consomem, cada um com **ⓧ** para forçar o encerramento |
+
+- O anel do disco fica **azul** e passa para **vermelho** acima de 90%.
+- O anel da memória segue a **pressão de memória**, igual ao Monitor de Atividade: azul (normal), laranja (alerta) e vermelho (crítica).
+- O botão **↻** atualiza na hora. Sem clicar, o macOS atualiza a cada 5–15 minutos.
+
+## Barra de menus
+
+<p align="center">
+  <img src="docs/menubar.png" width="600" alt="Ícone na barra de menus enchendo conforme o uso do disco">
+</p>
+
+O ícone de disco **vai enchendo conforme o uso**, como o da bateria, e fica vermelho acima de 90%. Clicando nele, abre um popover com tudo **ao vivo** (atualiza a cada 2 s enquanto está aberto):
+
+<p align="center">
+  <img src="docs/popover.png" width="366" alt="Popover com disco, memória e apps que mais usam memória">
+</p>
+
+## O que o "Limpar cache" apaga
+
+Antes de apagar, aparece uma confirmação com o tamanho de cada item:
+
+| Item | Efeito colateral |
+|---|---|
+| `~/Library/Caches` (cache de todos os apps) | Os apps recriam o cache sozinhos. A primeira abertura pode ficar um pouco mais lenta. |
+| `~/Library/Developer/Xcode/DerivedData` | O próximo build do Xcode compila tudo do zero. |
+| `~/Library/Developer/CoreSimulator/Caches` | Os simuladores abrem um pouco mais devagar na primeira vez. |
+| `~/.npm/_cacache` | O próximo `npm install` baixa os pacotes de novo. |
+| Simuladores iOS indisponíveis (`xcrun simctl delete unavailable`) | Nenhum: são simuladores de versões do iOS que não estão mais instaladas. |
+
+Não mexe em documentos, fotos, projetos, Lixeira, configurações nem arquivos do sistema.
+
+## Instalação
+
+1. Baixe o **[Disco.dmg](../../releases/latest)** e arraste o **Disco** para **Aplicativos**.
+2. Abra o Disco. Como o app não é notarizado pela Apple, na primeira vez o macOS bloqueia a abertura:
+   - vá em **Ajustes do Sistema → Privacidade e Segurança** e clique em **Abrir Mesmo Assim**, ou
+   - rode no Terminal:
+     ```bash
+     xattr -dr com.apple.quarantine /Applications/Disco.app
+     ```
+3. O ícone aparece na barra de menus, e o Disco passa a abrir junto com o Mac (item de login).
+4. Para adicionar os widgets: clique em **Editar Widgets…**, no fim da Central de Notificações, busque **Disco** ou **Memória** e arraste para a barra.
+
+**Reabrir:** ⌘ Espaço → `Disco`.
+**Fechar de vez:** Monitor de Atividade → Disco → ⓧ. Para não abrir mais no login: **Ajustes → Geral → Itens de Início**.
+
+## Como funciona
+
+```
+┌──────────────────────────────┐        topapps.json         ┌───────────────────────────┐
+│  Disco.app (agente, sem Dock)│ ──── (App Group) ─────────▶ │ Widget (sandbox)          │
+│  • ícone + popover na barra  │                             │ • lê disco e RAM sozinho  │
+│  • lê memória por app (60 s) │ ◀── discowidget://clean ─── │ • mostra lista de apps    │
+│  • limpa cache / força quit  │ ◀── discowidget://kill ──── │ • botões abrem links      │
+└──────────────────────────────┘                             └───────────────────────────┘
+```
+
+- **Disco e RAM total:** o widget lê direto (`URLResourceValues` e `host_statistics64`). Isso é permitido dentro do sandbox.
+- **Apps que mais usam memória:** o sandbox dos widgets **não deixa ver outros processos**. Por isso o app Disco, que roda em segundo plano, lê a memória de cada processo a cada minuto (`proc_pid_rusage` → `phys_footprint`, o mesmo valor que o Monitor de Atividade mostra). Ele soma os processos auxiliares de cada app (Chrome, Electron…) e grava a lista num App Group que o widget consegue ler.
+- **Botões do widget:** o widget também não pode apagar arquivos nem encerrar apps. Os botões abrem links `discowidget://…`, e o app Disco faz a ação depois de pedir confirmação.
+- **Consumo:** o app fica parado quase o tempo todo. Ele faz uma leitura por minuto, que leva milissegundos, e uma a cada 2 s só enquanto o popover está aberto.
+
+### Estrutura
+
+```
+App/       agente da barra de menus: popover, limpeza, forçar encerramento, leitura de processos
+Widget/    extensão WidgetKit: widgets Disco e Memória
+Shared/    leituras de disco/RAM, formatação e a lista de apps compartilhada
+project.yml  definição do projeto (XcodeGen)
+```
+
+## Compilar
+
+Requer Xcode 15+ e [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
+
+1. Em `project.yml`, troque `DEVELOPMENT_TEAM` e `CODE_SIGN_IDENTITY` pelos seus (uma conta Apple gratuita resolve).
+2. Troque o prefixo do App Group `HM8VRSUTC3` pelo seu Team ID em `project.yml` e em `Shared/TopApps.swift`.
+3. Gere o projeto e compile:
+   ```bash
+   xcodegen generate
+   xcodebuild -project Disco.xcodeproj -scheme Disco -configuration Release -derivedDataPath build build
+   cp -R build/Build/Products/Release/Disco.app ~/Applications/
+   ```
