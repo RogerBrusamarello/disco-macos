@@ -28,15 +28,15 @@
 
 - O anel do disco fica **azul** e passa para **vermelho** acima de 90%.
 - O anel da memória segue a **pressão de memória**, igual ao Monitor de Atividade: azul (normal), laranja (alerta) e vermelho (crítica).
-- O botão **↻** atualiza na hora. Sem clicar, o macOS atualiza a cada 5–15 minutos.
+- O botão **↻** atualiza na hora e dá uma volta. Sem clicar, o macOS atualiza a cada 5–15 minutos.
 
 ## Barra de menus
 
 <p align="center">
-  <img src="docs/menubar.png" width="600" alt="Ícone na barra de menus enchendo conforme o uso do disco">
+  <img src="docs/menubar.png" width="700" alt="RAM e disco na barra de menus, cada ícone enchendo conforme o uso">
 </p>
 
-O ícone de disco **vai enchendo conforme o uso**, como o da bateria, e fica vermelho acima de 90%. Clicando nele, abre um popover com tudo **ao vivo** (atualiza a cada 2 s enquanto está aberto):
+**RAM** (chip) e **disco** aparecem lado a lado, e cada ícone **vai enchendo conforme o uso**, como o da bateria. A RAM fica vermelha quando a pressão de memória está crítica, e o disco, acima de 90%. Deixando o mouse parado em cima, aparecem os detalhes. Clicando, abre um popover com tudo **ao vivo** (atualiza a cada 2 s enquanto está aberto):
 
 <p align="center">
   <img src="docs/popover.png" width="366" alt="Popover com disco, memória e apps que mais usam memória">
@@ -85,7 +85,7 @@ Não mexe em documentos, fotos, projetos, Lixeira, configurações nem arquivos 
 - **Disco e RAM total:** o widget lê direto (`URLResourceValues` e `host_statistics64`). Isso é permitido dentro do sandbox.
 - **Apps que mais usam memória:** o sandbox dos widgets **não deixa ver outros processos**. Por isso o app Disco, que roda em segundo plano, lê a memória de cada processo a cada minuto (`proc_pid_rusage` → `phys_footprint`, o mesmo valor que o Monitor de Atividade mostra). Ele soma os processos auxiliares de cada app (Chrome, Electron…) e grava a lista num App Group que o widget consegue ler.
 - **Botões do widget:** o widget também não pode apagar arquivos nem encerrar apps. Os botões abrem links `discowidget://…`, e o app Disco faz a ação depois de pedir confirmação.
-- **Consumo:** o app fica parado quase o tempo todo. Ele faz uma leitura por minuto, que leva milissegundos, e uma a cada 2 s só enquanto o popover está aberto.
+- **Consumo:** o app fica parado quase o tempo todo. Ele faz uma leitura por minuto, que leva milissegundos, uma do ícone da barra a cada 10 s e uma a cada 2 s só enquanto o popover está aberto.
 
 ### Estrutura
 
