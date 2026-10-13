@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="../../releases/latest"><b>⬇︎ Baixar Disco.dmg</b></a> · macOS 14 Sonoma ou mais recente · Apple Silicon e Intel
+  <a href="https://github.com/RogerBrusamarello/disco-macos/releases/latest"><b>⬇︎ Baixar Disco.dmg</b></a> · macOS 14 Sonoma ou mais recente · Apple Silicon e Intel
 </p>
 
 ---
@@ -58,7 +58,7 @@ Não mexe em documentos, fotos, projetos, Lixeira, configurações nem arquivos 
 
 ## Instalação
 
-1. Baixe o **[Disco.dmg](../../releases/latest)** e arraste o **Disco** para **Aplicativos**.
+1. Baixe o **[Disco.dmg](https://github.com/RogerBrusamarello/disco-macos/releases/latest)** e arraste o **Disco** para **Aplicativos**.
 2. Abra o Disco. Como o app não é notarizado pela Apple, na primeira vez o macOS bloqueia a abertura:
    - vá em **Ajustes do Sistema → Privacidade e Segurança** e clique em **Abrir Mesmo Assim**, ou
    - rode no Terminal:
