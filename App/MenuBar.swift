@@ -7,6 +7,7 @@ final class StatsModel: ObservableObject {
     @Published var disk: (total: Int64, free: Int64) = (0, 0)
     @Published var memory: (total: Int64, used: Int64, pressure: Int32) = (0, 0, 1)
     @Published var apps: [TopApp] = []
+    var appLimit = 5
     private var timer: Timer?
 
     var diskFraction: Double { disk.total > 0 ? Double(disk.total - disk.free) / Double(disk.total) : 0 }
@@ -27,7 +28,7 @@ final class StatsModel: ObservableObject {
     func refresh() {
         disk = Metrics.disk()
         memory = Metrics.memory()
-        apps = Sampler.topApps(limit: 5)
+        apps = Sampler.topApps(limit: appLimit)
     }
 }
 

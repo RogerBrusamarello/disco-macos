@@ -11,16 +11,10 @@ func registerBrandFonts() {
 
 extension Font {
     static func fredoka(_ size: CGFloat) -> Font { .custom("Fredoka-Bold", size: size) }
-    static func dmSans(_ size: CGFloat) -> Font { .custom("DMSans-14pt", size: size) }
 }
 
-extension Color {
-    /// Fundo do ícone
-    static let brandNavy = Color(red: 0x07 / 255, green: 0x0D / 255, blue: 0x39 / 255)
-    static let brandBlue = Color(red: 0x0B / 255, green: 0x2B / 255, blue: 0x70 / 255)
-}
-
-/// Janela centralizada com a identidade do disco. Enquanto está aberta, o app aparece no Dock e no ⌘Tab.
+/// Janela compacta no estilo dos Ajustes do Sistema, com a marca só no cabeçalho.
+/// Enquanto está aberta, o app aparece no Dock e no ⌘Tab.
 @MainActor
 final class MainWindowController: NSObject, NSWindowDelegate {
     private var window: NSWindow?
@@ -33,6 +27,7 @@ final class MainWindowController: NSObject, NSWindowDelegate {
     init(onClean: @escaping () -> Void, onKill: @escaping (String) -> Void) {
         self.onClean = onClean
         self.onKill = onKill
+        model.appLimit = 10
     }
 
     func show() {
@@ -46,20 +41,34 @@ final class MainWindowController: NSObject, NSWindowDelegate {
                 }
             )
             let window = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 600, height: 720),
+                contentRect: NSRect(x: 0, y: 0, width: 560, height: 480),
                 styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView],
                 backing: .buffered,
                 defer: false
             )
+            window.title = "Disco"
             window.titleVisibility = .hidden
             window.titlebarAppearsTransparent = true
             window.isMovableByWindowBackground = true
-            window.backgroundColor = NSColor(Color.brandNavy)
-            window.appearance = NSAppearance(named: .darkAqua)
             window.isReleasedWhenClosed = false
             window.delegate = self
-            window.contentView = NSHostingView(rootView: root)
-            window.setContentSize(window.contentView!.fittingSize)
+
+            // Fundo translúcido do sistema (segue modo claro/escuro).
+            let material = NSVisualEffectView()
+            material.material = .underWindowBackground
+            material.blendingMode = .behindWindow
+            material.state = .followsWindowActiveState
+            let host = NSHostingView(rootView: root)
+            host.translatesAutoresizingMaskIntoConstraints = false
+            material.addSubview(host)
+            NSLayoutConstraint.activate([
+                host.leadingAnchor.constraint(equalTo: material.leadingAnchor),
+                host.trailingAnchor.constraint(equalTo: material.trailingAnchor),
+                host.topAnchor.constraint(equalTo: material.topAnchor),
+                host.bottomAnchor.constraint(equalTo: material.bottomAnchor),
+            ])
+            window.contentView = material
+            window.setContentSize(host.fittingSize)
             window.center()
             self.window = window
         }
@@ -90,142 +99,127 @@ struct MainView: View {
     let onActivity: () -> Void
 
     var body: some View {
-        VStack(spacing: 18) {
+        VStack(alignment: .leading, spacing: 16) {
             header
-            HStack(spacing: 16) {
-                GaugeCard(
-                    title: "Disco",
+            HStack(spacing: 12) {
+                StatCard(
+                    title: "Macintosh HD",
                     fraction: model.diskFraction,
                     tint: .diskTint(model.diskFraction),
-                    gradient: [.brandPurple, .brandCyan],
                     primary: "\(gb(model.disk.total - model.disk.free)) de \(gb(model.disk.total)) GB",
-                    secondary: "\(gb(model.disk.free)) GB livres",
-                    button: ("Limpar cache", "sparkles", onClean)
-                )
-                GaugeCard(
+                    secondary: "\(gb(model.disk.free)) GB livres"
+                ) {
+                    Button("Limpar cache…", action: onClean)
+                    .buttonStyle(.borderedProminent)
+                    .tint(.brandPurple)
+                }
+                StatCard(
                     title: "Memória",
                     fraction: model.memoryFraction,
                     tint: .memoryTint(model.memory.pressure),
-                    gradient: [.brandMint, .brandCyan],
                     primary: "\(ramGB(model.memory.used)) de \(ramGB(model.memory.total)) GB",
-                    secondary: pressureLabel(model.memory.pressure).capitalizedFirst,
-                    button: ("Monitor de Atividade", "waveform.path.ecg", onActivity)
-                )
+                    secondary: pressureLabel(model.memory.pressure).capitalizedFirst
+                ) {
+                    Button("Monitor de Atividade", action: onActivity)
+                }
             }
-            appsCard
-            Text("Abre junto com o Mac · fica na barra de menus")
-                .font(.dmSans(11))
-                .foregroundStyle(.white.opacity(0.35))
+            appsSection
         }
-        .padding(.horizontal, 28)
-        .padding(.top, 30)
-        .padding(.bottom, 22)
-        .frame(width: 600)
-        .background(background)
-        .environment(\.colorScheme, .dark)
-    }
-
-    private var background: some View {
-        ZStack {
-            LinearGradient(colors: [.brandBlue, .brandNavy], startPoint: .top, endPoint: .bottom)
-            // brilho do feixe atrás da ilustração
-            RadialGradient(colors: [Color.brandMint.opacity(0.28), .clear], center: .init(x: 0.5, y: 0.17), startRadius: 0, endRadius: 230)
-        }
-        .ignoresSafeArea()
+        .controlSize(.small)
+        .padding(.horizontal, 20)
+        .padding(.top, 34)  // abaixo dos botões da janela
+        .padding(.bottom, 20)
+        .frame(width: 560)
     }
 
     private var header: some View {
-        VStack(spacing: 2) {
+        HStack(spacing: 12) {
             Image("Ilustracao")
                 .resizable()
                 .interpolation(.high)
-                .frame(width: 136, height: 136)
-                .shadow(color: .brandMint.opacity(0.35), radius: 24)
-            Text("disco")
-                .font(.fredoka(48))
-                .foregroundStyle(.white)
-                .padding(.top, -6)
-            Text("Dê espaço ao seu Mac.")
-                .font(.dmSans(16))
-                .foregroundStyle(.white.opacity(0.7))
+                .frame(width: 52, height: 52)
+            VStack(alignment: .leading, spacing: 0) {
+                Text("disco").font(.fredoka(26))
+                Text("Dê espaço ao seu Mac.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 
-    private var appsCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
+    private var appsSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
             Text("Mais usam memória")
-                .font(.fredoka(15))
-                .foregroundStyle(.white.opacity(0.9))
-            let maxBytes = max(model.apps.first?.bytes ?? 1, 1)
-            ForEach(model.apps, id: \.path) { app in
-                AppBarRow(app: app, share: Double(app.bytes) / Double(maxBytes)) { onKill(app.path) }
+                .font(.system(size: 13, weight: .semibold))
+                .padding(.leading, 4)
+            ScrollView {
+                VStack(spacing: 0) {
+                    let maxBytes = max(model.apps.first?.bytes ?? 1, 1)
+                    ForEach(Array(model.apps.enumerated()), id: \.element.path) { index, app in
+                        if index > 0 { Divider().padding(.leading, 44) }
+                        AppRow(app: app, share: Double(app.bytes) / Double(maxBytes)) { onKill(app.path) }
+                    }
+                }
             }
+            .frame(height: 6 * 37)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .groupBox()
         }
-        .padding(18)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .glassCard()
     }
 }
 
-struct GaugeCard: View {
+/// Caixa agrupada no estilo dos Ajustes do Sistema.
+private extension View {
+    func groupBox() -> some View {
+        background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(.background.opacity(0.6))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .strokeBorder(.separator, lineWidth: 0.5)
+                )
+        )
+    }
+}
+
+struct StatCard<Action: View>: View {
     let title: String
     let fraction: Double
     let tint: Color
-    let gradient: [Color]
     let primary: String
     let secondary: String
-    let button: (title: String, icon: String, action: () -> Void)
-
-    /// Normal: degradê da marca; alerta: cor sólida (laranja/vermelho).
-    private var ringStyle: AnyShapeStyle {
-        tint == gradient.first
-            ? AnyShapeStyle(AngularGradient(colors: gradient + [gradient[0]], center: .center, startAngle: .degrees(-90), endAngle: .degrees(270)))
-            : AnyShapeStyle(tint)
-    }
+    @ViewBuilder let action: () -> Action
 
     var body: some View {
-        VStack(spacing: 12) {
-            Text(title)
-                .font(.fredoka(17))
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        HStack(spacing: 14) {
             ZStack {
-                Circle().stroke(.white.opacity(0.1), lineWidth: 12)
+                Circle().stroke(.quaternary, lineWidth: 7)
                 Circle()
                     .trim(from: 0, to: fraction)
-                    .stroke(ringStyle, style: StrokeStyle(lineWidth: 12, lineCap: .round))
+                    .stroke(tint.gradient, style: StrokeStyle(lineWidth: 7, lineCap: .round))
                     .rotationEffect(.degrees(-90))
-                    .shadow(color: tint.opacity(0.5), radius: 8)
-                    .animation(.easeInOut(duration: 0.6), value: fraction)
+                    .animation(.easeInOut(duration: 0.5), value: fraction)
                 Text("\(Int((fraction * 100).rounded()))%")
-                    .font(.fredoka(34))
-                    .foregroundStyle(.white)
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
                     .monospacedDigit()
                     .contentTransition(.numericText())
             }
-            .frame(width: 112, height: 112)
-            VStack(spacing: 2) {
-                Text(primary).font(.system(size: 13, weight: .semibold)).foregroundStyle(.white)
-                Text(secondary).font(.system(size: 12)).foregroundStyle(.white.opacity(0.55))
+            .frame(width: 62, height: 62)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.system(size: 13, weight: .semibold))
+                Text(primary).font(.system(size: 12)).monospacedDigit()
+                Text(secondary).font(.system(size: 11)).foregroundStyle(.secondary).monospacedDigit()
+                action().padding(.top, 6)
             }
-            .monospacedDigit()
-            Button(action: button.action) {
-                Label(button.title, systemImage: button.icon)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(Color.brandPurple.gradient, in: Capsule())
-                    .contentShape(Capsule())
-            }
-            .buttonStyle(.plain)
+            Spacer(minLength: 0)
         }
-        .padding(18)
-        .glassCard()
+        .padding(14)
+        .frame(maxWidth: .infinity)
+        .groupBox()
     }
 }
 
-struct AppBarRow: View {
+struct AppRow: View {
     let app: TopApp
     let share: Double
     let onKill: () -> Void
@@ -233,45 +227,35 @@ struct AppBarRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            Image(nsImage: appIcon(app.path)).resizable().frame(width: 24, height: 24)
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(app.name).font(.system(size: 13, weight: .medium)).foregroundStyle(.white).lineLimit(1)
-                    Spacer()
-                    Text(ramLabel(app.bytes)).font(.system(size: 12)).foregroundStyle(.white.opacity(0.6)).monospacedDigit()
-                }
+            Image(nsImage: appIcon(app.path)).resizable().frame(width: 22, height: 22)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(app.name).font(.system(size: 13)).lineLimit(1)
                 GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule().fill(.white.opacity(0.08))
-                        Capsule()
-                            .fill(LinearGradient(colors: [.brandMint, .brandCyan], startPoint: .leading, endPoint: .trailing))
-                            .frame(width: max(geo.size.width * share, 4))
-                    }
+                    Capsule()
+                        .fill(Color.brandMint.gradient)
+                        .frame(width: max(geo.size.width * share, 3))
                 }
-                .frame(height: 4)
+                .frame(height: 3)
             }
+            Text(ramLabel(app.bytes))
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+                .frame(width: 64, alignment: .trailing)
             Button(action: onKill) {
                 Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 15))
-                    .foregroundStyle(.white.opacity(hovering ? 0.8 : 0.3))
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
             }
             .buttonStyle(.plain)
             .help("Forçar encerrar \(app.name)")
-            .onHover { hovering = $0 }
+            .opacity(hovering ? 1 : 0)
         }
-    }
-}
-
-private extension View {
-    func glassCard() -> some View {
-        background(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(.white.opacity(0.06))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .strokeBorder(.white.opacity(0.1), lineWidth: 1)
-                )
-        )
+        .padding(.horizontal, 10)
+        .frame(height: 36)
+        .background(hovering ? Color.primary.opacity(0.05) : .clear)
+        .contentShape(Rectangle())
+        .onHover { hovering = $0 }
     }
 }
 
