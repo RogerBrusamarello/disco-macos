@@ -17,6 +17,20 @@ extension Font {
 enum WindowTab: String, CaseIterable {
     case overview = "Visão geral"
     case clean = "Limpeza"
+
+    var systemImage: String {
+        switch self {
+        case .overview: "gauge.with.dots.needle.67percent"
+        case .clean: "sparkles"
+        }
+    }
+
+    var help: String {
+        switch self {
+        case .overview: "Disco, memória e apps que mais usam memória"
+        case .clean: "Escolher e abduzir arquivos temporários"
+        }
+    }
 }
 
 enum WindowTheme: String {
@@ -132,8 +146,8 @@ struct MainView: View {
         VStack(alignment: .leading, spacing: 16) {
             header
             // Hierarquia: marca primeiro, depois a troca de aba.
-            TabSegments(selection: $state.tab)
-                .frame(width: 240)
+            TabToggle(selection: $state.tab)
+                .frame(width: 280)
                 .frame(maxWidth: .infinity)
             Group {
                 switch state.tab {
@@ -251,40 +265,42 @@ struct ThemeToggle: View {
     }
 }
 
-/// Controle segmentado nativo do macOS (HIG): segmentos de mesma largura, um selecionado por vez.
-struct TabSegments: NSViewRepresentable {
+/// Abas no mesmo padrão da cápsula "Abduzir temporários": trilho cinza e a aba ativa
+/// como cápsula roxa que desliza entre os segmentos (de mesma largura).
+struct TabToggle: View {
     @Binding var selection: WindowTab
+    @Namespace private var namespace
 
-    func makeNSView(context: Context) -> NSSegmentedControl {
-        let control = NSSegmentedControl(
-            labels: WindowTab.allCases.map(\.rawValue),
-            trackingMode: .selectOne,
-            target: context.coordinator,
-            action: #selector(Coordinator.changed(_:))
-        )
-        control.segmentDistribution = .fillEqually
-        control.segmentStyle = .automatic
-        control.controlSize = .regular
-        // HIG (macOS): se o app usa dicas, uma por segmento.
-        control.setToolTip("Disco, memória e apps que mais usam memória", forSegment: 0)
-        control.setToolTip("Escolher e abduzir arquivos temporários", forSegment: 1)
-        return control
-    }
-
-    func updateNSView(_ control: NSSegmentedControl, context: Context) {
-        context.coordinator.selection = $selection
-        control.selectedSegment = WindowTab.allCases.firstIndex(of: selection) ?? 0
-    }
-
-    func makeCoordinator() -> Coordinator { Coordinator(selection: $selection) }
-
-    final class Coordinator: NSObject {
-        var selection: Binding<WindowTab>
-        init(selection: Binding<WindowTab>) { self.selection = selection }
-
-        @objc func changed(_ sender: NSSegmentedControl) {
-            selection.wrappedValue = WindowTab.allCases[sender.selectedSegment]
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(WindowTab.allCases, id: \.self) { tab in
+                let selected = tab == selection
+                Button {
+                    withAnimation(.snappy(duration: 0.25)) { selection = tab }
+                } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: tab.systemImage)
+                        Text(tab.rawValue)
+                    }
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(selected ? AnyShapeStyle(.white) : AnyShapeStyle(.secondary))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+                    .background {
+                        if selected {
+                            Capsule()
+                                .fill(Color.brandPurple.gradient)
+                                .matchedGeometryEffect(id: "selection", in: namespace)
+                        }
+                    }
+                    .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .help(tab.help)
+            }
         }
+        .padding(3)
+        .background(.fill.secondary, in: Capsule())
     }
 }
 
