@@ -111,7 +111,7 @@ struct UsageRing: View {
             Circle().stroke(.quaternary, lineWidth: size * 0.09)
             Circle()
                 .trim(from: 0, to: fraction)
-                .stroke(tint.gradient, style: StrokeStyle(lineWidth: size * 0.09, lineCap: .round))
+                .stroke(tint, style: StrokeStyle(lineWidth: size * 0.09, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .widgetAccentable()
             Image(nsImage: icon)

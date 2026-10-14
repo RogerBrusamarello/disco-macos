@@ -268,7 +268,7 @@ struct Bar: View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 Capsule().fill(.quaternary)
-                Capsule().fill(tint.gradient).frame(width: max(geo.size.width * fraction, 6))
+                Capsule().fill(tint).frame(width: max(geo.size.width * fraction, 6))
             }
         }
         .frame(height: 6)

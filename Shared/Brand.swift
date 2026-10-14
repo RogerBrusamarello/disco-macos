@@ -64,7 +64,7 @@ struct CapsuleLabel: View {
 
     private var fill: AnyShapeStyle {
         switch style {
-        case .prominent: AnyShapeStyle(Color.brandPurple.gradient)
+        case .prominent: AnyShapeStyle(Color.brandPurple)
         case .outline: AnyShapeStyle(Color.brandPurple.opacity(0.08))
         case .secondary: AnyShapeStyle(.fill.secondary)
         }

@@ -302,7 +302,7 @@ struct TabToggle: View {
                     .background {
                         if selected {
                             Capsule()
-                                .fill(Color.brandPurple.gradient)
+                                .fill(Color.brandPurple)
                                 .matchedGeometryEffect(id: "selection", in: namespace)
                         }
                     }
@@ -453,7 +453,7 @@ struct StatCard<Action: View>: View {
                 Circle().stroke(.quaternary, lineWidth: 6)
                 Circle()
                     .trim(from: 0, to: fraction)
-                    .stroke(tint.gradient, style: StrokeStyle(lineWidth: 6, lineCap: .round))
+                    .stroke(tint, style: StrokeStyle(lineWidth: 6, lineCap: .round))
                     .rotationEffect(.degrees(-90))
                     .animation(.easeInOut(duration: 0.5), value: fraction)
                 Text("\(Int((fraction * 100).rounded()))%")
@@ -489,7 +489,7 @@ struct AppRow: View {
                 Text(app.name).font(.system(size: 13)).lineLimit(1)
                 GeometryReader { geo in
                     Capsule()
-                        .fill(Color.brandMint.gradient)
+                        .fill(Color.brandMint)
                         .frame(width: max(geo.size.width * share, 3))
                 }
                 .frame(height: 3)
