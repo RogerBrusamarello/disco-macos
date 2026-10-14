@@ -220,6 +220,9 @@ struct TabSegments: NSViewRepresentable {
         control.segmentDistribution = .fillEqually
         control.segmentStyle = .automatic
         control.controlSize = .regular
+        // HIG (macOS): se o app usa dicas, uma por segmento.
+        control.setToolTip("Disco, memória e apps que mais usam memória", forSegment: 0)
+        control.setToolTip("Escolher e abduzir arquivos temporários", forSegment: 1)
         return control
     }
 
