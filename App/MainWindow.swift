@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import CoreText
 import SwiftUI
 
@@ -18,9 +19,17 @@ enum WindowTab: String, CaseIterable {
     case clean = "Limpeza"
 }
 
+enum WindowTheme: String {
+    case light, dark
+}
+
 @MainActor
 final class WindowState: ObservableObject {
     @Published var tab: WindowTab = .overview
+    /// nil = segue o tema do Mac; depois do primeiro clique no botão, fica salvo.
+    @Published var theme: WindowTheme? = UserDefaults.standard.string(forKey: "windowTheme").flatMap(WindowTheme.init) {
+        didSet { UserDefaults.standard.set(theme?.rawValue, forKey: "windowTheme") }
+    }
 }
 
 /// Janela compacta no estilo dos Ajustes do Sistema, com a marca só no cabeçalho.
@@ -32,6 +41,7 @@ final class MainWindowController: NSObject, NSWindowDelegate {
     private let cleanModel = CleanModel()
     private let state = WindowState()
     private let onKill: (String) -> Void
+    private var themeObserver: AnyCancellable?
 
     var isVisible: Bool { window?.isVisible ?? false }
 
@@ -82,6 +92,9 @@ final class MainWindowController: NSObject, NSWindowDelegate {
             window.setContentSize(host.fittingSize)
             window.center()
             self.window = window
+            themeObserver = state.$theme.sink { [weak window] theme in
+                window?.appearance = theme.map { NSAppearance(named: $0 == .dark ? .darkAqua : .aqua)! }
+            }
         }
         if let tab { state.tab = tab }
         if state.tab == .clean { cleanModel.scan() }
@@ -135,6 +148,11 @@ struct MainView: View {
         .padding(.top, 34)  // abaixo dos botões da janela
         .padding(.bottom, 20)
         .frame(width: 560)
+        .overlay(alignment: .topTrailing) {
+            ThemeToggle(state: state)
+                .padding(.top, 5)  // na linha dos botões fechar/minimizar
+                .padding(.trailing, 10)
+        }
         .onChange(of: state.tab) { _, tab in
             if tab == .clean { cleanModel.scan() }
         }
@@ -202,6 +220,32 @@ struct MainView: View {
                 .groupBox()
             }
         }
+    }
+}
+
+/// Alterna a janela entre tema claro e escuro.
+struct ThemeToggle: View {
+    @ObservedObject var state: WindowState
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var hovering = false
+
+    private var isDark: Bool { colorScheme == .dark }
+
+    var body: some View {
+        Button {
+            state.theme = isDark ? .light : .dark
+        } label: {
+            Image(systemName: isDark ? "sun.max.fill" : "moon.fill")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+                .contentTransition(.symbolEffect(.replace))
+                .frame(width: 24, height: 22)
+                .background(hovering ? Color.primary.opacity(0.08) : .clear, in: RoundedRectangle(cornerRadius: 6))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(isDark ? "Tema claro" : "Tema escuro")
+        .onHover { hovering = $0 }
     }
 }
 
