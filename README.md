@@ -16,7 +16,7 @@
 
 <p align="center">
   Widgets e ícone na barra de menus para acompanhar <b>disco</b> e <b>memória RAM</b> do Mac,<br>
-  com <b>limpeza de cache</b> e <b>forçar encerramento</b> em um clique.
+  para <b>abduzir temporários</b> e <b>forçar encerrar</b> apps em um clique.
 </p>
 
 <p align="center">
