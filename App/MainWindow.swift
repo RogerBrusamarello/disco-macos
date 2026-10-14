@@ -106,7 +106,7 @@ private func appIcon(_ path: String) -> NSImage {
 }
 
 /// Altura fixa do conteúdo das abas, para a janela não mudar de tamanho ao trocar.
-private let tabHeight: CGFloat = 372
+private let tabHeight: CGFloat = 352
 
 struct MainView: View {
     @ObservedObject var model: StatsModel
@@ -118,6 +118,10 @@ struct MainView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             header
+            // Hierarquia: marca primeiro, depois a troca de aba.
+            TabSegments(selection: $state.tab)
+                .frame(width: 240)
+                .frame(maxWidth: .infinity)
             Group {
                 switch state.tab {
                 case .overview: overview
@@ -128,14 +132,9 @@ struct MainView: View {
         }
         .controlSize(.small)
         .padding(.horizontal, 20)
-        .padding(.top, 44)  // abaixo da barra de título com as abas
+        .padding(.top, 34)  // abaixo dos botões da janela
         .padding(.bottom, 20)
         .frame(width: 560)
-        .overlay(alignment: .top) {
-            TabSegments(selection: $state.tab)
-                .frame(width: 220)
-                .padding(.top, 7)  // alinhado com os botões da janela
-        }
         .onChange(of: state.tab) { _, tab in
             if tab == .clean { cleanModel.scan() }
         }
