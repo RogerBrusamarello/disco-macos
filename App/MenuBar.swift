@@ -33,15 +33,66 @@ final class StatsModel: ObservableObject {
 }
 
 @MainActor
-final class StatusController: NSObject, NSPopoverDelegate {
+/// Painel que pode receber cliques sem ativar o app (como os da Central de Controle).
+final class MenuBarPanel: NSPanel {
+    override var canBecomeKey: Bool { true }
+}
+
+@MainActor
+final class StatusController: NSObject, NSWindowDelegate {
     private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    private let popover = NSPopover()
+    private let panel: MenuBarPanel
+    private let host: NSHostingView<PopoverView>
     private let model = StatsModel()
     private var iconTimer: Timer?
     private var clickOutsideMonitor: Any?
 
+    private var isShown: Bool { panel.isVisible }
+
     init(onClean: @escaping () -> Void, onKill: @escaping (String) -> Void, onOpen: @escaping () -> Void) {
+        // Painel sem setinha: vidro translúcido, cantos arredondados e sombra, logo abaixo do ícone.
+        panel = MenuBarPanel(
+            contentRect: .zero,
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: true
+        )
+        host = NSHostingView(rootView: PopoverView(model: model, onClean: {}, onKill: { _ in }, onOpen: {}))
         super.init()
+
+        host.rootView = PopoverView(
+            model: model,
+            onClean: { [weak self] in self?.close(); onClean() },
+            onKill: { [weak self] path in self?.close(); onKill(path) },
+            onOpen: { [weak self] in self?.close(); onOpen() }
+        )
+        panel.isFloatingPanel = true
+        panel.level = .popUpMenu
+        panel.backgroundColor = .clear
+        panel.isOpaque = false
+        panel.hasShadow = true
+        panel.hidesOnDeactivate = false
+        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        panel.delegate = self
+
+        let glass = NSVisualEffectView()
+        glass.material = .popover
+        glass.state = .active
+        glass.blendingMode = .behindWindow
+        glass.wantsLayer = true
+        glass.layer?.cornerRadius = 12
+        glass.layer?.cornerCurve = .continuous
+        glass.layer?.masksToBounds = true
+        host.translatesAutoresizingMaskIntoConstraints = false
+        glass.addSubview(host)
+        NSLayoutConstraint.activate([
+            host.leadingAnchor.constraint(equalTo: glass.leadingAnchor),
+            host.trailingAnchor.constraint(equalTo: glass.trailingAnchor),
+            host.topAnchor.constraint(equalTo: glass.topAnchor),
+            host.bottomAnchor.constraint(equalTo: glass.bottomAnchor),
+        ])
+        panel.contentView = glass
+
         if let button = item.button {
             button.target = self
             button.action = #selector(toggle)
@@ -50,45 +101,55 @@ final class StatusController: NSObject, NSPopoverDelegate {
         iconTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.refreshIcon() }
         }
-        popover.behavior = .transient
-        popover.delegate = self
-        let root = PopoverView(
-            model: model,
-            onClean: { [weak self] in self?.close(); onClean() },
-            onKill: { [weak self] path in self?.close(); onKill(path) },
-            onOpen: { [weak self] in self?.close(); onOpen() },
-        )
-        let host = NSHostingController(rootView: root)
-        host.sizingOptions = .preferredContentSize
-        popover.contentViewController = host
     }
 
     @objc private func toggle() {
-        guard let button = item.button else { return }
-        if popover.isShown {
-            close()
-        } else {
-            model.start()
-            // Sem ativar o app: assim a janela do Disco (se aberta) não vem para frente junto.
-            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-            popover.contentViewController?.view.window?.makeKey()
-            // Como os menus de Som/Wi-Fi: qualquer clique fora fecha.
-            clickOutsideMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
-                Task { @MainActor in self?.close() }
-            }
+        isShown ? close() : show()
+    }
+
+    private func show() {
+        guard let button = item.button, let buttonWindow = button.window else { return }
+        model.start()
+        host.layoutSubtreeIfNeeded()
+        let size = host.fittingSize
+
+        // Centralizado sob o ícone, sem sair da tela.
+        let anchor = buttonWindow.convertToScreen(button.convert(button.bounds, to: nil))
+        let screen = buttonWindow.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
+        var x = anchor.midX - size.width / 2
+        x = min(max(x, screen.minX + 8), screen.maxX - size.width - 8)
+        let y = anchor.minY - size.height - 6
+        panel.setFrame(NSRect(x: x, y: y, width: size.width, height: size.height), display: true)
+
+        // Sem ativar o app: assim a janela do Disco (se aberta) não vem para frente junto.
+        panel.alphaValue = 0
+        panel.orderFrontRegardless()
+        panel.makeKey()
+        NSAnimationContext.runAnimationGroup { $0.duration = 0.12; panel.animator().alphaValue = 1 }
+        button.highlight(true)
+
+        // Como os menus de Som/Wi-Fi: qualquer clique fora fecha.
+        clickOutsideMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            Task { @MainActor in self?.close() }
         }
     }
 
-    private func close() { popover.performClose(nil) }
-
-    func popoverDidClose(_ notification: Notification) {
+    private func close() {
+        guard isShown else { return }
         if let monitor = clickOutsideMonitor {
             NSEvent.removeMonitor(monitor)
             clickOutsideMonitor = nil
         }
+        item.button?.highlight(false)
+        NSAnimationContext.runAnimationGroup({ $0.duration = 0.1; panel.animator().alphaValue = 0 }) { [panel] in
+            panel.orderOut(nil)
+        }
         model.stop()
         refreshIcon()
     }
+
+    /// Clicou em outra janela do próprio app (ex.: a janela do Disco): fecha também.
+    func windowDidResignKey(_ notification: Notification) { close() }
 
     /// Só o disco voador em contorno; os números ficam na dica e no popover.
     func refreshIcon() {

@@ -145,14 +145,16 @@ struct MainView: View {
         }
         .controlSize(.small)
         .padding(.horizontal, 20)
-        .padding(.top, 34)  // abaixo dos botões da janela
+        .padding(.top, 44)  // abaixo da linha dos botões da janela (barra de título ~28 pt)
         .padding(.bottom, 20)
         .frame(width: 560)
         .overlay(alignment: .topTrailing) {
             ThemeToggle(state: state)
-                .padding(.top, 5)  // na linha dos botões fechar/minimizar
+                .padding(.top, 3)  // centro em ~14 pt: mesma linha de fechar/minimizar
                 .padding(.trailing, 10)
         }
+        // Conteúdo a partir do topo real da janela (a barra de título é transparente).
+        .ignoresSafeArea(.container, edges: .top)
         .onChange(of: state.tab) { _, tab in
             if tab == .clean { cleanModel.scan() }
         }
