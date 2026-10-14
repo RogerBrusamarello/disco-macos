@@ -265,11 +265,9 @@ struct PopoverView: View {
                 detail: "\(gb(model.disk.total - model.disk.free)) de \(gb(model.disk.total)) GB · \(gb(model.disk.free)) GB livres"
             )
             Button(action: onClean) {
-                Label("Limpar cache…", systemImage: "sparkles").frame(maxWidth: .infinity)
+                CapsuleLabel(title: "Abduzir temporários", systemImage: "sparkles", fullWidth: true)
             }
-            .controlSize(.large)
-            .buttonStyle(.borderedProminent)
-            .tint(.brandPurple)
+            .buttonStyle(CapsuleButtonStyle())
 
             Divider()
 

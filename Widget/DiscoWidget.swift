@@ -84,21 +84,17 @@ struct RefreshButton: View {
     }
 }
 
+/// Link do widget com a cápsula padrão (Shared/Brand.swift).
 struct ActionButton: View {
     let title: String
     let systemImage: String
     let url: String
+    var prominent = true
     var fullWidth = false
 
     var body: some View {
         Link(destination: URL(string: url)!) {
-            Label(title, systemImage: systemImage)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(maxWidth: fullWidth ? .infinity : nil)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color.brandPurple.gradient, in: Capsule())
+            CapsuleLabel(title: title, systemImage: systemImage, prominent: prominent, fullWidth: fullWidth)
         }
     }
 }
@@ -151,7 +147,7 @@ struct DiscoWidgetView: View {
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
             Spacer(minLength: 6)
-            ActionButton(title: "Limpar cache", systemImage: "sparkles", url: "discowidget://clean", fullWidth: true)
+            ActionButton(title: "Abduzir temporários", systemImage: "sparkles", url: "discowidget://clean", fullWidth: true)
         }
     }
 
@@ -176,7 +172,7 @@ struct DiscoWidgetView: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
                 Spacer(minLength: 6)
-                ActionButton(title: "Limpar cache", systemImage: "sparkles", url: "discowidget://clean")
+                ActionButton(title: "Abduzir temporários", systemImage: "sparkles", url: "discowidget://clean")
             }
         }
     }

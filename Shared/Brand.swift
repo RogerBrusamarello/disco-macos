@@ -23,3 +23,40 @@ extension Color {
         }
     }
 }
+
+/// Cápsula padrão do disco, igual no widget, no popover e na janela.
+/// `prominent`: roxo da marca (ação principal, ex.: Abduzir temporários); senão, cinza do sistema.
+struct CapsuleLabel: View {
+    let title: String
+    var systemImage: String?
+    var prominent = true
+    var fullWidth = false
+
+    var body: some View {
+        HStack(spacing: 5) {
+            if let systemImage { Image(systemName: systemImage) }
+            Text(title).lineLimit(1).minimumScaleFactor(0.8)
+        }
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(prominent ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
+            .frame(maxWidth: fullWidth ? .infinity : nil)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(
+                prominent ? AnyShapeStyle(Color.brandPurple.gradient) : AnyShapeStyle(.fill.secondary),
+                in: Capsule()
+            )
+            .contentShape(Capsule())
+    }
+}
+
+/// Feedback de clique e estado desabilitado para botões com `CapsuleLabel`.
+struct CapsuleButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .opacity(isEnabled ? (configuration.isPressed ? 0.75 : 1) : 0.4)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+    }
+}

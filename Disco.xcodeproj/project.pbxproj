@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0772408CA7448E2EE9B7BD42 /* Cleaner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08679912712CFC5E07DEC73A /* Cleaner.swift */; };
 		14DAA3808722B017AD86E37E /* Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = F82ED13AE6FD952006D019F3 /* Brand.swift */; };
 		1ED6EE6DFD0C59FBF74B4218 /* DiscoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C644D4C3A070F0385FD0D87E /* DiscoApp.swift */; };
 		31E2E3532D94B010017DD75D /* Sampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 234F7280F804071E7C2FFE8C /* Sampler.swift */; };
@@ -53,6 +54,7 @@
 		00BDE4D3ACC30594C0A6D7DF /* MenuBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBar.swift; sourceTree = "<group>"; };
 		02309CA82E25474675BFFB79 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		023CED0141EC26949F7133D6 /* Disco.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Disco.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		08679912712CFC5E07DEC73A /* Cleaner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cleaner.swift; sourceTree = "<group>"; };
 		0E95D7077D3B4053BDB2BB58 /* DM-Sans-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DM-Sans-Regular.ttf"; sourceTree = "<group>"; };
 		168B10E7A94B7E6508B91EC9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		218C242E2F7E90721F544DE0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -97,6 +99,7 @@
 			children = (
 				A784A75656C0073CBCEC810B /* App.entitlements */,
 				02309CA82E25474675BFFB79 /* Assets.xcassets */,
+				08679912712CFC5E07DEC73A /* Cleaner.swift */,
 				C644D4C3A070F0385FD0D87E /* DiscoApp.swift */,
 				168B10E7A94B7E6508B91EC9 /* Info.plist */,
 				3A5759F364218E251A3EA908 /* MainWindow.swift */,
@@ -233,6 +236,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF23443EBF3754CD2C3E3FC1 /* Brand.swift in Sources */,
+				0772408CA7448E2EE9B7BD42 /* Cleaner.swift in Sources */,
 				1ED6EE6DFD0C59FBF74B4218 /* DiscoApp.swift in Sources */,
 				AEA2508E7C3946C1603CF64F /* MainWindow.swift in Sources */,
 				3491ABFC72E168CA175FA310 /* MenuBar.swift in Sources */,

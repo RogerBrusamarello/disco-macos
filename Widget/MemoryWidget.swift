@@ -188,7 +188,7 @@ struct MemoryWidgetView: View {
                 .foregroundStyle(.secondary)
             AppList(apps: entry.apps, limit: 7, spacing: 9)
             Spacer(minLength: 0)
-            ActionButton(title: "Monitor de Atividade", systemImage: "list.bullet", url: "discowidget://activity", fullWidth: true)
+            ActionButton(title: "Monitor de Atividade", systemImage: "waveform.path.ecg", url: "discowidget://activity", prominent: false, fullWidth: true)
         }
     }
 }

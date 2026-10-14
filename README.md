@@ -41,7 +41,7 @@ Abrindo o **Disco** pelo Spotlight ou pelo Finder, clicando num widget ou em **A
 
 | Widget | Tamanhos | O que mostra |
 |---|---|---|
-| **Disco** | pequeno, médio | % usado, GB livres e botão **Limpar cache** |
+| **Disco** | pequeno, médio | % usado, GB livres e botão **Abduzir temporários** |
 | **Memória** | pequeno, médio, grande | % usado, pressão de memória e os apps que mais consomem, cada um com **ⓧ** para forçar o encerramento |
 
 - O anel do disco fica **azul** e passa para **vermelho** acima de 90%.
@@ -60,17 +60,21 @@ Na barra de menus fica só o **disco voador em contorno**, no mesmo traço dos �
   <img src="docs/popover.png" width="366" alt="Popover com disco, memória e apps que mais usam memória">
 </p>
 
-## O que o "Limpar cache" apaga
+## Abduzir temporários
 
-Antes de apagar, aparece uma confirmação com o tamanho de cada item:
+<p align="center">
+  <img src="docs/limpeza.png" width="560" alt="Aba Limpeza: lista de itens com seleção, tamanho de cada um e botão Abduzir selecionados">
+</p>
+
+O botão **Abduzir temporários** (igual no widget, no popover e na janela) abre a aba **Limpeza**. Lá aparecem os itens abaixo, cada um com o tamanho calculado na hora. Você marca o que quer apagar e clica em **Abduzir selecionados**.
 
 | Item | Efeito colateral |
 |---|---|
-| `~/Library/Caches` (cache de todos os apps) | Os apps recriam o cache sozinhos. A primeira abertura pode ficar um pouco mais lenta. |
-| `~/Library/Developer/Xcode/DerivedData` | O próximo build do Xcode compila tudo do zero. |
-| `~/Library/Developer/CoreSimulator/Caches` | Os simuladores abrem um pouco mais devagar na primeira vez. |
-| `~/.npm/_cacache` | O próximo `npm install` baixa os pacotes de novo. |
-| Simuladores iOS indisponíveis (`xcrun simctl delete unavailable`) | Nenhum: são simuladores de versões do iOS que não estão mais instaladas. |
+| **Cache de aplicativos** (`~/Library/Caches`) | Os apps recriam o cache sozinhos. A primeira abertura pode ficar um pouco mais lenta. |
+| **Xcode DerivedData** | O próximo build do Xcode compila tudo do zero. |
+| **Caches de simuladores** + simuladores indisponíveis | Os simuladores abrem um pouco mais devagar na primeira vez. Os indisponíveis são de versões do iOS que já não estão instaladas. |
+| **npm / Yarn / pnpm** (`~/.npm/_cacache`, `~/.yarn/berry/cache`, `~/Library/pnpm/store`) | O próximo `install` baixa os pacotes de novo. |
+| **Logs antigos** (`~/Library/Logs`, com mais de 7 dias) | Nenhum no uso normal. |
 
 Não mexe em documentos, fotos, projetos, Lixeira, configurações nem arquivos do sistema.
 
@@ -96,13 +100,13 @@ Não mexe em documentos, fotos, projetos, Lixeira, configurações nem arquivos 
 │  Disco.app (agente, sem Dock)│ ──── (App Group) ─────────▶ │ Widget (sandbox)          │
 │  • ícone + popover na barra  │                             │ • lê disco e RAM sozinho  │
 │  • lê memória por app (60 s) │ ◀── discowidget://clean ─── │ • mostra lista de apps    │
-│  • limpa cache / força quit  │ ◀── discowidget://kill ──── │ • botões abrem links      │
+│  • abduz temporários / quit  │ ◀── discowidget://kill ──── │ • botões abrem links      │
 └──────────────────────────────┘                             └───────────────────────────┘
 ```
 
 - **Disco e RAM total:** o widget lê direto (`URLResourceValues` e `host_statistics64`). Isso é permitido dentro do sandbox.
 - **Apps que mais usam memória:** o sandbox dos widgets **não deixa ver outros processos**. Por isso o app Disco, que roda em segundo plano, lê a memória de cada processo a cada minuto (`proc_pid_rusage` → `phys_footprint`, o mesmo valor que o Monitor de Atividade mostra). Ele soma os processos auxiliares de cada app (Chrome, Electron…) e grava a lista num App Group que o widget consegue ler.
-- **Botões do widget:** o widget também não pode apagar arquivos nem encerrar apps. Os botões abrem links `discowidget://…`, e o app Disco faz a ação depois de pedir confirmação.
+- **Botões do widget:** o widget também não pode apagar arquivos nem encerrar apps. Os botões abrem links `discowidget://…`, e o app Disco abre a aba Limpeza ou pede confirmação para forçar o encerramento.
 - **Consumo:** o app fica parado quase o tempo todo. Ele faz uma leitura por minuto, que leva milissegundos, uma a cada 2 s só enquanto o popover está aberto.
 
 ### Estrutura

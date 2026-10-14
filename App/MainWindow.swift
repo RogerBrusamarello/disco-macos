@@ -13,28 +13,39 @@ extension Font {
     static func fredoka(_ size: CGFloat) -> Font { .custom("Fredoka-Bold", size: size) }
 }
 
+enum WindowTab: String, CaseIterable {
+    case overview = "Visão geral"
+    case clean = "Limpeza"
+}
+
+@MainActor
+final class WindowState: ObservableObject {
+    @Published var tab: WindowTab = .overview
+}
+
 /// Janela compacta no estilo dos Ajustes do Sistema, com a marca só no cabeçalho.
 /// Enquanto está aberta, o app aparece no Dock e no ⌘Tab.
 @MainActor
 final class MainWindowController: NSObject, NSWindowDelegate {
     private var window: NSWindow?
     private let model = StatsModel()
-    private let onClean: () -> Void
+    private let cleanModel = CleanModel()
+    private let state = WindowState()
     private let onKill: (String) -> Void
 
     var isVisible: Bool { window?.isVisible ?? false }
 
-    init(onClean: @escaping () -> Void, onKill: @escaping (String) -> Void) {
-        self.onClean = onClean
+    init(onKill: @escaping (String) -> Void) {
         self.onKill = onKill
         model.appLimit = 10
     }
 
-    func show() {
+    func show(tab: WindowTab? = nil) {
         if window == nil {
             let root = MainView(
                 model: model,
-                onClean: { [weak self] in self?.onClean() },
+                cleanModel: cleanModel,
+                state: state,
                 onKill: { [weak self] path in self?.onKill(path) },
                 onActivity: {
                     NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Utilities/Activity Monitor.app"))
@@ -72,6 +83,8 @@ final class MainWindowController: NSObject, NSWindowDelegate {
             window.center()
             self.window = window
         }
+        if let tab { state.tab = tab }
+        if state.tab == .clean { cleanModel.scan() }
         model.start()
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
@@ -92,44 +105,35 @@ private func appIcon(_ path: String) -> NSImage {
     return image
 }
 
+/// Altura fixa do conteúdo das abas, para a janela não mudar de tamanho ao trocar.
+private let tabHeight: CGFloat = 372
+
 struct MainView: View {
     @ObservedObject var model: StatsModel
-    let onClean: () -> Void
+    @ObservedObject var cleanModel: CleanModel
+    @ObservedObject var state: WindowState
     let onKill: (String) -> Void
     let onActivity: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             header
-            HStack(spacing: 12) {
-                StatCard(
-                    title: "Macintosh HD",
-                    fraction: model.diskFraction,
-                    tint: .diskTint(model.diskFraction),
-                    primary: "\(gb(model.disk.total - model.disk.free)) de \(gb(model.disk.total)) GB",
-                    secondary: "\(gb(model.disk.free)) GB livres"
-                ) {
-                    Button("Limpar cache…", action: onClean)
-                    .buttonStyle(.borderedProminent)
-                    .tint(.brandPurple)
-                }
-                StatCard(
-                    title: "Memória",
-                    fraction: model.memoryFraction,
-                    tint: .memoryTint(model.memory.pressure),
-                    primary: "\(ramGB(model.memory.used)) de \(ramGB(model.memory.total)) GB",
-                    secondary: pressureLabel(model.memory.pressure).capitalizedFirst
-                ) {
-                    Button("Monitor de Atividade", action: onActivity)
+            Group {
+                switch state.tab {
+                case .overview: overview
+                case .clean: CleanView(model: cleanModel)
                 }
             }
-            appsSection
+            .frame(height: tabHeight, alignment: .top)
         }
         .controlSize(.small)
         .padding(.horizontal, 20)
         .padding(.top, 34)  // abaixo dos botões da janela
         .padding(.bottom, 20)
         .frame(width: 560)
+        .onChange(of: state.tab) { _, tab in
+            if tab == .clean { cleanModel.scan() }
+        }
     }
 
     private var header: some View {
@@ -144,29 +148,173 @@ struct MainView: View {
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
             }
+            Spacer()
+            Picker("", selection: $state.tab) {
+                ForEach(WindowTab.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .controlSize(.regular)
+            .fixedSize()
         }
     }
 
-    private var appsSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Mais usam memória")
-                .font(.system(size: 13, weight: .semibold))
-                .padding(.leading, 4)
-            ScrollView {
-                VStack(spacing: 0) {
-                    let maxBytes = max(model.apps.first?.bytes ?? 1, 1)
-                    ForEach(Array(model.apps.enumerated()), id: \.element.path) { index, app in
-                        if index > 0 { Divider().padding(.leading, 44) }
-                        AppRow(app: app, share: Double(app.bytes) / Double(maxBytes)) { onKill(app.path) }
+    private var overview: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 12) {
+                StatCard(
+                    title: "Macintosh HD",
+                    fraction: model.diskFraction,
+                    tint: .diskTint(model.diskFraction),
+                    primary: "\(gb(model.disk.total - model.disk.free)) de \(gb(model.disk.total)) GB",
+                    secondary: "\(gb(model.disk.free)) GB livres"
+                ) {
+                    Button { state.tab = .clean } label: {
+                        CapsuleLabel(title: "Abduzir temporários", systemImage: "sparkles")
                     }
+                    .buttonStyle(CapsuleButtonStyle())
+                }
+                StatCard(
+                    title: "Memória",
+                    fraction: model.memoryFraction,
+                    tint: .memoryTint(model.memory.pressure),
+                    primary: "\(ramGB(model.memory.used)) de \(ramGB(model.memory.total)) GB",
+                    secondary: pressureLabel(model.memory.pressure).capitalizedFirst
+                ) {
+                    Button(action: onActivity) {
+                        CapsuleLabel(title: "Monitor", systemImage: "waveform.path.ecg", prominent: false)
+                    }
+                    .buttonStyle(CapsuleButtonStyle())
                 }
             }
-            .frame(height: 6 * 37)
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            .groupBox()
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Mais usam memória")
+                    .font(.system(size: 13, weight: .semibold))
+                    .padding(.leading, 4)
+                ScrollView {
+                    VStack(spacing: 0) {
+                        let maxBytes = max(model.apps.first?.bytes ?? 1, 1)
+                        ForEach(Array(model.apps.enumerated()), id: \.element.path) { index, app in
+                            if index > 0 { Divider().padding(.leading, 44) }
+                            AppRow(app: app, share: Double(app.bytes) / Double(maxBytes)) { onKill(app.path) }
+                        }
+                    }
+                }
+                .frame(maxHeight: .infinity)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .groupBox()
+            }
         }
     }
 }
+
+// MARK: Limpeza
+
+struct CleanView: View {
+    @ObservedObject var model: CleanModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Limpeza do Mac").font(.system(size: 13, weight: .semibold))
+                Text("Escolha o que apagar. Tudo aqui é recriado sozinho pelos apps quando precisarem.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.leading, 4)
+
+            ScrollView {
+                VStack(spacing: 0) {
+                    ForEach(Array(Cleaner.items.enumerated()), id: \.element.id) { index, item in
+                        if index > 0 { Divider().padding(.leading, 44) }
+                        CleanRow(
+                            item: item,
+                            size: model.sizes[item.id],
+                            selected: model.selected.contains(item.id)
+                        ) { model.toggle(item.id) }
+                    }
+                }
+            }
+            .frame(maxHeight: .infinity)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .groupBox()
+            .disabled(model.cleaning)
+
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(footerCaption)
+                        .font(.system(size: 11))
+                        .foregroundStyle(model.freed != nil ? AnyShapeStyle(Color.green) : AnyShapeStyle(.secondary))
+                    Text(Cleaner.format(model.total))
+                        .font(.system(size: 22, weight: .semibold, design: .rounded))
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+                        .animation(.easeOut(duration: 0.2), value: model.total)
+                }
+                Spacer()
+                if model.cleaning || model.scanning {
+                    ProgressView().controlSize(.small).padding(.trailing, 6)
+                }
+                Button(action: model.clean) {
+                    CapsuleLabel(title: model.cleaning ? "Abduzindo…" : "Abduzir selecionados", systemImage: "sparkles")
+                }
+                .buttonStyle(CapsuleButtonStyle())
+                .disabled(model.selected.isEmpty || model.cleaning)
+            }
+            .padding(.horizontal, 4)
+        }
+    }
+
+    private var footerCaption: String {
+        if let freed = model.freed { return "✓ \(Cleaner.format(freed)) liberados · selecionado agora" }
+        return model.scanning ? "Calculando…" : "Selecionado"
+    }
+}
+
+struct CleanRow: View {
+    let item: CleanItem
+    let size: Int64?
+    let selected: Bool
+    let onToggle: () -> Void
+
+    var body: some View {
+        Button(action: onToggle) {
+            HStack(spacing: 12) {
+                Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 18))
+                    .foregroundStyle(selected ? AnyShapeStyle(Color.brandPurple) : AnyShapeStyle(.tertiary))
+                    .contentTransition(.symbolEffect(.replace))
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(item.title).font(.system(size: 13))
+                    Text(item.subtitle).font(.system(size: 11)).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Group {
+                    if let size, size > 0 {
+                        Text(Cleaner.format(size)).monospacedDigit().foregroundStyle(.secondary)
+                    } else if size != nil {
+                        Text("Vazio").foregroundStyle(.tertiary)
+                    } else {
+                        ProgressView().controlSize(.mini)
+                    }
+                }
+                .font(.system(size: 12))
+            }
+            .padding(.horizontal, 12)
+            .frame(height: 48)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+extension Cleaner {
+    static func format(_ bytes: Int64) -> String {
+        ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
+    }
+}
+
+// MARK: Componentes
 
 /// Caixa agrupada no estilo dos Ajustes do Sistema.
 private extension View {
@@ -191,20 +339,20 @@ struct StatCard<Action: View>: View {
     @ViewBuilder let action: () -> Action
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 12) {
             ZStack {
-                Circle().stroke(.quaternary, lineWidth: 7)
+                Circle().stroke(.quaternary, lineWidth: 6)
                 Circle()
                     .trim(from: 0, to: fraction)
-                    .stroke(tint.gradient, style: StrokeStyle(lineWidth: 7, lineCap: .round))
+                    .stroke(tint.gradient, style: StrokeStyle(lineWidth: 6, lineCap: .round))
                     .rotationEffect(.degrees(-90))
                     .animation(.easeInOut(duration: 0.5), value: fraction)
                 Text("\(Int((fraction * 100).rounded()))%")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
                     .monospacedDigit()
                     .contentTransition(.numericText())
             }
-            .frame(width: 62, height: 62)
+            .frame(width: 56, height: 56)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.system(size: 13, weight: .semibold))
                 Text(primary).font(.system(size: 12)).monospacedDigit()
@@ -213,7 +361,7 @@ struct StatCard<Action: View>: View {
             }
             Spacer(minLength: 0)
         }
-        .padding(14)
+        .padding(12)
         .frame(maxWidth: .infinity)
         .groupBox()
     }
