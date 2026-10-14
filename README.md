@@ -25,6 +25,14 @@
 
 ---
 
+## Janela
+
+<p align="center">
+  <img src="docs/janela.png" width="420" alt="Janela do disco com a ilustração, anéis de disco e memória e os apps que mais usam memória">
+</p>
+
+Abrindo o **Disco** pelo Spotlight ou pelo Finder, clicando num widget ou em **Abrir Disco** no popover, aparece esta janela com tudo **ao vivo**. Enquanto ela está aberta, o app aparece no Dock. Ao fechar, ele volta a ficar só na barra de menus.
+
 ## Widgets
 
 <p align="center">

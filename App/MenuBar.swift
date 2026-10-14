@@ -38,7 +38,7 @@ final class StatusController: NSObject, NSPopoverDelegate {
     private let model = StatsModel()
     private var iconTimer: Timer?
 
-    init(onClean: @escaping () -> Void, onKill: @escaping (String) -> Void) {
+    init(onClean: @escaping () -> Void, onKill: @escaping (String) -> Void, onOpen: @escaping () -> Void) {
         super.init()
         if let button = item.button {
             button.target = self
@@ -54,6 +54,7 @@ final class StatusController: NSObject, NSPopoverDelegate {
             model: model,
             onClean: { [weak self] in self?.close(); onClean() },
             onKill: { [weak self] path in self?.close(); onKill(path) },
+            onOpen: { [weak self] in self?.close(); onOpen() },
             onActivity: { [weak self] in
                 self?.close()
                 NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Utilities/Activity Monitor.app"))
@@ -219,6 +220,7 @@ struct PopoverView: View {
     @ObservedObject var model: StatsModel
     let onClean: () -> Void
     let onKill: (String) -> Void
+    let onOpen: () -> Void
     let onActivity: () -> Void
 
     var body: some View {
@@ -257,9 +259,13 @@ struct PopoverView: View {
 
             Divider()
 
-            Button("Monitor de Atividade", action: onActivity)
-                .buttonStyle(.borderless)
-                .font(.system(size: 12))
+            HStack {
+                Button("Abrir Disco", action: onOpen)
+                Spacer()
+                Button("Monitor de Atividade", action: onActivity)
+            }
+            .buttonStyle(.borderless)
+            .font(.system(size: 12))
         }
         .padding(16)
         .frame(width: 310)
