@@ -33,6 +33,50 @@ final class StatsModel: ObservableObject {
 }
 
 @MainActor
+private let panelRadius: CGFloat = 16
+
+/// Máscara esticável com cantos arredondados para o vidro do painel.
+private func roundedMask(radius: CGFloat) -> NSImage {
+    let edge = radius * 2 + 1
+    let image = NSImage(size: NSSize(width: edge, height: edge), flipped: false) { rect in
+        NSColor.black.setFill()
+        NSBezierPath(roundedRect: rect, xRadius: radius, yRadius: radius).fill()
+        return true
+    }
+    image.capInsets = NSEdgeInsets(top: radius, left: radius, bottom: radius, right: radius)
+    image.resizingMode = .stretch
+    return image
+}
+
+/// Contorno fino e claro, como o dos painéis da Central de Controle; acompanha o tema.
+final class PanelBorderView: NSView {
+    override init(frame: NSRect) {
+        super.init(frame: frame)
+        wantsLayer = true
+        layer?.cornerRadius = panelRadius
+        layer?.borderWidth = 1
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }  // não rouba cliques
+
+    override func viewDidChangeEffectiveAppearance() {
+        super.viewDidChangeEffectiveAppearance()
+        updateBorder()
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        updateBorder()
+    }
+
+    private func updateBorder() {
+        let dark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        layer?.borderColor = (dark ? NSColor.white.withAlphaComponent(0.14) : NSColor.black.withAlphaComponent(0.1)).cgColor
+    }
+}
+
 /// Painel que pode receber cliques sem ativar o app (como os da Central de Controle).
 final class MenuBarPanel: NSPanel {
     override var canBecomeKey: Bool { true }
@@ -75,22 +119,23 @@ final class StatusController: NSObject, NSWindowDelegate {
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.delegate = self
 
+        // O vidro (desfoque do que está atrás) só é recortado por maskImage; cornerRadius não basta.
         let glass = NSVisualEffectView()
         glass.material = .popover
         glass.state = .active
         glass.blendingMode = .behindWindow
-        glass.wantsLayer = true
-        glass.layer?.cornerRadius = 12
-        glass.layer?.cornerCurve = .continuous
-        glass.layer?.masksToBounds = true
-        host.translatesAutoresizingMaskIntoConstraints = false
-        glass.addSubview(host)
-        NSLayoutConstraint.activate([
-            host.leadingAnchor.constraint(equalTo: glass.leadingAnchor),
-            host.trailingAnchor.constraint(equalTo: glass.trailingAnchor),
-            host.topAnchor.constraint(equalTo: glass.topAnchor),
-            host.bottomAnchor.constraint(equalTo: glass.bottomAnchor),
-        ])
+        glass.maskImage = roundedMask(radius: panelRadius)
+        let border = PanelBorderView()
+        for view in [host, border] as [NSView] {
+            view.translatesAutoresizingMaskIntoConstraints = false
+            glass.addSubview(view)
+            NSLayoutConstraint.activate([
+                view.leadingAnchor.constraint(equalTo: glass.leadingAnchor),
+                view.trailingAnchor.constraint(equalTo: glass.trailingAnchor),
+                view.topAnchor.constraint(equalTo: glass.topAnchor),
+                view.bottomAnchor.constraint(equalTo: glass.bottomAnchor),
+            ])
+        }
         panel.contentView = glass
 
         if let button = item.button {
@@ -124,6 +169,7 @@ final class StatusController: NSObject, NSWindowDelegate {
         // Sem ativar o app: assim a janela do Disco (se aberta) não vem para frente junto.
         panel.alphaValue = 0
         panel.orderFrontRegardless()
+        panel.invalidateShadow()  // sombra acompanha os cantos arredondados
         panel.makeKey()
         NSAnimationContext.runAnimationGroup { $0.duration = 0.12; panel.animator().alphaValue = 1 }
         button.highlight(true)
@@ -291,52 +337,72 @@ struct PopoverView: View {
     let onOpen: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
                 Image("Ilustracao")
                     .resizable()
                     .interpolation(.high)
-                    .frame(width: 30, height: 30)
-                Text("disco").font(.fredoka(20))
+                    .frame(width: 28, height: 28)
+                Text("disco").font(.fredoka(19))
                 Spacer()
             }
+            .padding(.horizontal, 4)
 
-            StatSection(
-                icon: driveIcon,
-                title: "Macintosh HD",
-                fraction: model.diskFraction,
-                tint: .diskTint(model.diskFraction),
-                detail: "\(gb(model.disk.total - model.disk.free)) de \(gb(model.disk.total)) GB · \(gb(model.disk.free)) GB livres"
-            )
-            Button(action: onClean) {
-                CapsuleLabel(title: "Abduzir temporários", systemImage: "sparkles", fullWidth: true)
+            VStack(alignment: .leading, spacing: 12) {
+                StatSection(
+                    icon: driveIcon,
+                    title: "Macintosh HD",
+                    fraction: model.diskFraction,
+                    tint: .diskTint(model.diskFraction),
+                    detail: "\(gb(model.disk.total - model.disk.free)) de \(gb(model.disk.total)) GB · \(gb(model.disk.free)) GB livres"
+                )
+                Button(action: onClean) {
+                    CapsuleLabel(title: "Abduzir temporários", systemImage: "sparkles", fullWidth: true)
+                }
+                .buttonStyle(CapsuleButtonStyle())
             }
-            .buttonStyle(CapsuleButtonStyle())
+            .module()
 
-            Divider()
-
-            StatSection(
-                icon: activityIcon,
-                title: "Memória",
-                fraction: model.memoryFraction,
-                tint: .memoryTint(model.memory.pressure),
-                detail: "\(ramGB(model.memory.used)) de \(ramGB(model.memory.total)) GB · \(pressureLabel(model.memory.pressure))"
-            )
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Mais usam memória")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                ForEach(model.apps, id: \.path) { app in
-                    AppLine(app: app) { onKill(app.path) }
+            VStack(alignment: .leading, spacing: 12) {
+                StatSection(
+                    icon: activityIcon,
+                    title: "Memória",
+                    fraction: model.memoryFraction,
+                    tint: .memoryTint(model.memory.pressure),
+                    detail: "\(ramGB(model.memory.used)) de \(ramGB(model.memory.total)) GB · \(pressureLabel(model.memory.pressure))"
+                )
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Mais usam memória")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                    ForEach(model.apps, id: \.path) { app in
+                        AppLine(app: app) { onKill(app.path) }
+                    }
                 }
             }
+            .module()
 
             Button(action: onOpen) {
                 CapsuleLabel(title: "Abrir Disco", systemImage: "macwindow", style: .outline, fullWidth: true)
             }
             .buttonStyle(CapsuleButtonStyle())
         }
-        .padding(16)
-        .frame(width: 310)
+        .padding(12)
+        .frame(width: 320)
+    }
+}
+
+private extension View {
+    /// Cartão no estilo dos módulos da Central de Controle.
+    func module() -> some View {
+        padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color.primary.opacity(0.05))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
+                    )
+            )
     }
 }
