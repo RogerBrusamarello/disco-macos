@@ -57,7 +57,7 @@ Abrindo o **Disco** pelo Spotlight ou pelo Finder, clicando num widget ou em **A
 Na barra de menus fica só o **disco voador em contorno**, no mesmo traço dos ícones do sistema. Deixando o mouse parado em cima, aparecem a memória e o espaço livre. Clicando, abre um popover com tudo **ao vivo** (atualiza a cada 2 s enquanto está aberto):
 
 <p align="center">
-  <img src="docs/popover.png" width="366" alt="Popover com disco, memória e apps que mais usam memória">
+  <img src="docs/popover.png" width="680" alt="Popover com logo, disco, memória, apps que mais usam memória e o botão Abrir Disco, nos modos escuro e claro">
 </p>
 
 ## Abduzir temporários

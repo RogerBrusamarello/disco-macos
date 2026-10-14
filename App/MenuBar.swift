@@ -57,10 +57,6 @@ final class StatusController: NSObject, NSPopoverDelegate {
             onClean: { [weak self] in self?.close(); onClean() },
             onKill: { [weak self] path in self?.close(); onKill(path) },
             onOpen: { [weak self] in self?.close(); onOpen() },
-            onActivity: { [weak self] in
-                self?.close()
-                NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Utilities/Activity Monitor.app"))
-            }
         )
         let host = NSHostingController(rootView: root)
         host.sizingOptions = .preferredContentSize
@@ -227,36 +223,23 @@ struct AppLine: View {
     }
 }
 
-/// Linha clicável no estilo do rodapé dos menus de Som/Wi-Fi.
-struct MenuRow: View {
-    let title: String
-    let action: () -> Void
-    @State private var hovering = false
-
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 13))
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(hovering ? Color.primary.opacity(0.1) : .clear, in: RoundedRectangle(cornerRadius: 5))
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .onHover { hovering = $0 }
-    }
-}
-
 struct PopoverView: View {
     @ObservedObject var model: StatsModel
     let onClean: () -> Void
     let onKill: (String) -> Void
     let onOpen: () -> Void
-    let onActivity: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 8) {
+                Image("Ilustracao")
+                    .resizable()
+                    .interpolation(.high)
+                    .frame(width: 30, height: 30)
+                Text("disco").font(.fredoka(20))
+                Spacer()
+            }
+
             StatSection(
                 icon: driveIcon,
                 title: "Macintosh HD",
@@ -287,14 +270,10 @@ struct PopoverView: View {
                 }
             }
 
-            Divider()
-
-            VStack(spacing: 0) {
-                MenuRow(title: "Abrir Disco…", action: onOpen)
-                MenuRow(title: "Monitor de Atividade…", action: onActivity)
+            Button(action: onOpen) {
+                CapsuleLabel(title: "Abrir Disco", systemImage: "macwindow", style: .outline, fullWidth: true)
             }
-            .padding(.horizontal, -8)
-            .padding(.top, -6)
+            .buttonStyle(CapsuleButtonStyle())
         }
         .padding(16)
         .frame(width: 310)
