@@ -53,7 +53,7 @@ struct Provider: TimelineProvider {
 }
 
 extension DiskEntry {
-    var tint: Color { fraction < 0.9 ? .blue : .red }
+    var tint: Color { .diskTint(fraction) }
     var percent: String { "\(Int((fraction * 100).rounded()))%" }
 }
 
@@ -94,11 +94,11 @@ struct ActionButton: View {
         Link(destination: URL(string: url)!) {
             Label(title, systemImage: systemImage)
                 .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(.primary)
+                .foregroundStyle(.white)
                 .frame(maxWidth: fullWidth ? .infinity : nil)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(.fill.secondary, in: Capsule())
+                .background(Color.brandPurple.gradient, in: Capsule())
         }
     }
 }
@@ -115,7 +115,7 @@ struct UsageRing: View {
             Circle().stroke(.quaternary, lineWidth: size * 0.09)
             Circle()
                 .trim(from: 0, to: fraction)
-                .stroke(tint, style: StrokeStyle(lineWidth: size * 0.09, lineCap: .round))
+                .stroke(tint.gradient, style: StrokeStyle(lineWidth: size * 0.09, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .widgetAccentable()
             Image(nsImage: icon)

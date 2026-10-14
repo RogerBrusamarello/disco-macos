@@ -14,13 +14,7 @@ struct MemoryEntry: TimelineEntry {
     var fraction: Double { total > 0 ? min(Double(used) / Double(total), 1) : 0 }
     var percent: String { "\(Int((fraction * 100).rounded()))%" }
 
-    var tint: Color {
-        switch pressure {
-        case 4: .red
-        case 2: .orange
-        default: .blue
-        }
-    }
+    var tint: Color { .memoryTint(pressure) }
 
 
     static func current() -> MemoryEntry {

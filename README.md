@@ -43,10 +43,10 @@
 ## Barra de menus
 
 <p align="center">
-  <img src="docs/menubar.png" width="700" alt="RAM e disco na barra de menus, cada ícone enchendo conforme o uso">
+  <img src="docs/menubar.png" width="420" alt="Disco voador em contorno na barra de menus, ao lado do Wi-Fi e da bateria">
 </p>
 
-**RAM** (chip) e **disco** (o disco voador 🛸) aparecem lado a lado, e cada ícone **vai enchendo conforme o uso**, como o da bateria. A RAM fica vermelha quando a pressão de memória está crítica, e o disco, acima de 90%. Deixando o mouse parado em cima, aparecem os detalhes. Clicando, abre um popover com tudo **ao vivo** (atualiza a cada 2 s enquanto está aberto):
+Na barra de menus fica só o **disco voador em contorno**, no mesmo traço dos ícones do sistema. Deixando o mouse parado em cima, aparecem a memória e o espaço livre. Clicando, abre um popover com tudo **ao vivo** (atualiza a cada 2 s enquanto está aberto):
 
 <p align="center">
   <img src="docs/popover.png" width="366" alt="Popover com disco, memória e apps que mais usam memória">
@@ -95,7 +95,7 @@ Não mexe em documentos, fotos, projetos, Lixeira, configurações nem arquivos 
 - **Disco e RAM total:** o widget lê direto (`URLResourceValues` e `host_statistics64`). Isso é permitido dentro do sandbox.
 - **Apps que mais usam memória:** o sandbox dos widgets **não deixa ver outros processos**. Por isso o app Disco, que roda em segundo plano, lê a memória de cada processo a cada minuto (`proc_pid_rusage` → `phys_footprint`, o mesmo valor que o Monitor de Atividade mostra). Ele soma os processos auxiliares de cada app (Chrome, Electron…) e grava a lista num App Group que o widget consegue ler.
 - **Botões do widget:** o widget também não pode apagar arquivos nem encerrar apps. Os botões abrem links `discowidget://…`, e o app Disco faz a ação depois de pedir confirmação.
-- **Consumo:** o app fica parado quase o tempo todo. Ele faz uma leitura por minuto, que leva milissegundos, uma do ícone da barra a cada 10 s e uma a cada 2 s só enquanto o popover está aberto.
+- **Consumo:** o app fica parado quase o tempo todo. Ele faz uma leitura por minuto, que leva milissegundos, uma a cada 2 s só enquanto o popover está aberto.
 
 ### Estrutura
 
@@ -126,5 +126,6 @@ Todos os arquivos estão em [`brand/`](brand):
 
 - **Ícone e ilustração:** disco voador roxo, feixe verde-menta e vaquinha, em PNG 1024 px.
 - **Logo:** [Fredoka](https://fonts.google.com/specimen/Fredoka) Bold. **Slogan:** [DM Sans](https://fonts.google.com/specimen/DM+Sans) Regular. As duas fontes têm licença SIL Open Font License 1.1, e os arquivos e as licenças estão em `brand/fontes/`.
-- **Barra de menus:** `menubar.svg`, uma silhueta de uma cor só. O app desenha essa mesma forma em vetor e vai enchendo conforme o uso do disco.
+- **Barra de menus:** `menubar.svg`. O app desenha essa forma em vetor, como contorno.
+- **Cores dos widgets:** roxo do disco voador `#534DFC` para o disco, menta do feixe `#52E5D5` para a memória, e laranja/vermelho só como alerta.
 - **Interface:** widgets e popover usam a fonte do sistema (SF Pro), para manter o visual nativo do macOS.

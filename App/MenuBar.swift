@@ -82,121 +82,59 @@ final class StatusController: NSObject, NSPopoverDelegate {
         refreshIcon()
     }
 
-    /// RAM e disco lado a lado: "78% [chip]  84% [disco]", cada ícone enche conforme o uso.
+    /// Só o disco voador em contorno; os números ficam na dica e no popover.
     func refreshIcon() {
         guard let button = item.button else { return }
         let disk = Metrics.disk()
         let memory = Metrics.memory()
-        let diskFraction = disk.total > 0 ? Double(disk.total - disk.free) / Double(disk.total) : 0
-        let memoryFraction = memory.total > 0 ? min(Double(memory.used) / Double(memory.total), 1) : 0
-        button.image = menuBarImage([
-            Gauge(glyph: .symbol("memorychip.fill"), fraction: memoryFraction, critical: memory.pressure == 4),
-            Gauge(glyph: .ufo, fraction: diskFraction, critical: diskFraction >= 0.9),
-        ], height: NSStatusBar.system.thickness)
+        button.image = ufoOutline
         button.toolTip = "Memória: \(ramGB(memory.used)) de \(ramGB(memory.total)) GB · \(pressureLabel(memory.pressure))\n"
             + "Macintosh HD: \(gb(disk.free)) GB livres"
     }
 }
 
-struct Gauge {
-    enum Glyph {
-        case symbol(String)
-        /// Disco voador da identidade (brand/menubar.svg).
-        case ufo
-    }
+/// Disco voador em contorno, a partir de brand/menubar.svg (viewBox 32×20):
+/// silhueta externa + linha da aba sob a cúpula + linha da base.
+let ufoOutline: NSImage = {
+    let line: CGFloat = 1.3
+    let scale: CGFloat = 0.72
+    let size = NSSize(width: 32 * scale + line, height: 20 * scale + line)
+    let image = NSImage(size: size, flipped: true) { _ in
+        func pt(_ x: CGFloat, _ y: CGFloat) -> NSPoint { NSPoint(x: x * scale + line / 2, y: y * scale + line / 2) }
 
-    let glyph: Glyph
-    let fraction: Double
-    let critical: Bool
+        let body = NSBezierPath()
+        body.move(to: pt(16, 0))
+        body.curve(to: pt(6.5, 7), controlPoint1: pt(10.8, 0), controlPoint2: pt(7.4, 2.8))
+        body.curve(to: pt(0, 11), controlPoint1: pt(2.6, 7.9), controlPoint2: pt(0, 9.3))
+        body.curve(to: pt(10, 16.2), controlPoint1: pt(0, 13.5), controlPoint2: pt(4.5, 15.4))
+        body.line(to: pt(10, 18))
+        body.curve(to: pt(16, 20), controlPoint1: pt(10, 19.1), controlPoint2: pt(12.7, 20))
+        body.curve(to: pt(22, 18), controlPoint1: pt(19.3, 20), controlPoint2: pt(22, 19.1))
+        body.line(to: pt(22, 16.2))
+        body.curve(to: pt(32, 11), controlPoint1: pt(27.5, 15.4), controlPoint2: pt(32, 13.5))
+        body.curve(to: pt(25.5, 7), controlPoint1: pt(32, 9.3), controlPoint2: pt(29.4, 7.9))
+        body.curve(to: pt(16, 0), controlPoint1: pt(24.6, 2.8), controlPoint2: pt(21.2, 0))
+        body.close()
 
-    var image: NSImage? {
-        switch glyph {
-        case .symbol(let name):
-            NSImage(systemSymbolName: name, accessibilityDescription: nil)?
-                .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 15, weight: .regular))
-        case .ufo:
-            ufoImage
+        let details = NSBezierPath()
+        details.move(to: pt(6.5, 7))     // aba sob a cúpula
+        details.curve(to: pt(25.5, 7), controlPoint1: pt(12, 9), controlPoint2: pt(20, 9))
+        details.move(to: pt(10, 16.2))   // topo da base
+        details.curve(to: pt(22, 16.2), controlPoint1: pt(14, 16.9), controlPoint2: pt(18, 16.9))
+
+        NSColor.black.setStroke()
+        for path in [body, details] {
+            path.lineWidth = line
+            path.lineJoinStyle = .round
+            path.lineCapStyle = .round
+            path.stroke()
         }
-    }
-}
-
-/// brand/menubar.svg (viewBox 32×20) redesenhado em vetor, na altura do chip de RAM (~13 pt).
-private let ufoImage: NSImage = {
-    let scale: CGFloat = 0.66
-    let image = NSImage(size: NSSize(width: 32 * scale, height: 20 * scale), flipped: true) { _ in
-        let p = NSBezierPath()
-        func pt(_ x: CGFloat, _ y: CGFloat) -> NSPoint { NSPoint(x: x * scale, y: y * scale) }
-        p.move(to: pt(16, 0))
-        p.curve(to: pt(6.5, 7), controlPoint1: pt(10.8, 0), controlPoint2: pt(7.4, 2.8))
-        p.curve(to: pt(0, 11), controlPoint1: pt(2.6, 7.9), controlPoint2: pt(0, 9.3))
-        p.curve(to: pt(10, 16.2), controlPoint1: pt(0, 13.5), controlPoint2: pt(4.5, 15.4))
-        p.line(to: pt(10, 18))
-        p.curve(to: pt(16, 20), controlPoint1: pt(10, 19.1), controlPoint2: pt(12.7, 20))
-        p.curve(to: pt(22, 18), controlPoint1: pt(19.3, 20), controlPoint2: pt(22, 19.1))
-        p.line(to: pt(22, 16.2))
-        p.curve(to: pt(32, 11), controlPoint1: pt(27.5, 15.4), controlPoint2: pt(32, 13.5))
-        p.curve(to: pt(25.5, 7), controlPoint1: pt(32, 9.3), controlPoint2: pt(29.4, 7.9))
-        p.curve(to: pt(16, 0), controlPoint1: pt(24.6, 2.8), controlPoint2: pt(21.2, 0))
-        p.close()
-        NSColor.black.setFill()
-        p.fill()
         return true
     }
     image.isTemplate = true
+    image.accessibilityDescription = "Disco"
     return image
 }()
-
-/// Texto e ícones numa imagem só, todos centralizados na mesma linha
-/// (centro da altura das maiúsculas = centro do contorno de cada símbolo).
-func menuBarImage(_ gauges: [Gauge], height: CGFloat) -> NSImage {
-    let anyCritical = gauges.contains(where: \.critical)
-    let font = NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .medium)
-    let textGap: CGFloat = 3, groupGap: CGFloat = 9
-
-    struct Part { let text: NSAttributedString; let textWidth: CGFloat; let symbol: NSImage; let gauge: Gauge }
-    let parts: [Part] = gauges.compactMap { g in
-        guard let symbol = g.image else { return nil }
-        let text = NSAttributedString(string: "\(Int((g.fraction * 100).rounded()))%", attributes: [
-            .font: font,
-            // Template usa só o alfa; com algo em vermelho a imagem é colorida e o texto segue a barra.
-            .foregroundColor: anyCritical ? NSColor.labelColor : NSColor.black,
-        ])
-        return Part(text: text, textWidth: ceil(text.size().width), symbol: symbol, gauge: g)
-    }
-    let width = parts.reduce(0) { $0 + $1.textWidth + textGap + $1.symbol.alignmentRect.width }
-        + groupGap * CGFloat(max(parts.count - 1, 0))
-
-    let image = NSImage(size: NSSize(width: ceil(width), height: height), flipped: false) { rect in
-        let mid = rect.midY
-        let baseline = (mid - font.capHeight / 2).rounded()
-        var x: CGFloat = 0
-        for part in parts {
-            part.text.draw(at: NSPoint(x: x, y: baseline + font.descender))
-            x += part.textWidth + textGap
-
-            let glyph = part.symbol.alignmentRect
-            let symbolRect = NSRect(origin: NSPoint(x: x - glyph.minX, y: (mid - glyph.midY).rounded()), size: part.symbol.size)
-            let filled = NSRect(x: x, y: 0, width: glyph.width * part.gauge.fraction, height: rect.height)
-            let empty = NSRect(x: filled.maxX, y: 0, width: glyph.width - filled.width, height: rect.height)
-
-            for (clip, alpha) in [(empty, 0.3), (filled, 1.0)] {
-                NSGraphicsContext.saveGraphicsState()
-                NSBezierPath(rect: clip).addClip()
-                part.symbol.draw(in: symbolRect, from: .zero, operation: .sourceOver, fraction: alpha)
-                if anyCritical {
-                    (part.gauge.critical ? NSColor.systemRed : NSColor.labelColor).set()  // sourceAtop mantém o alfa já desenhado
-                    clip.fill(using: .sourceAtop)
-                }
-                NSGraphicsContext.restoreGraphicsState()
-            }
-            x += glyph.width + groupGap
-        }
-        return true
-    }
-    // Template = segue a cor da barra de menus; vermelho precisa ser imagem colorida.
-    image.isTemplate = !anyCritical
-    return image
-}
 
 private func icon(_ path: String) -> NSImage {
     let image = NSWorkspace.shared.icon(forFile: path)
@@ -289,13 +227,15 @@ struct PopoverView: View {
                 icon: driveIcon,
                 title: "Macintosh HD",
                 fraction: model.diskFraction,
-                tint: model.diskFraction < 0.9 ? .blue : .red,
+                tint: .diskTint(model.diskFraction),
                 detail: "\(gb(model.disk.total - model.disk.free)) de \(gb(model.disk.total)) GB · \(gb(model.disk.free)) GB livres"
             )
             Button(action: onClean) {
                 Label("Limpar cache…", systemImage: "sparkles").frame(maxWidth: .infinity)
             }
             .controlSize(.large)
+            .buttonStyle(.borderedProminent)
+            .tint(.brandPurple)
 
             Divider()
 
@@ -303,7 +243,7 @@ struct PopoverView: View {
                 icon: activityIcon,
                 title: "Memória",
                 fraction: model.memoryFraction,
-                tint: model.memory.pressure == 4 ? .red : model.memory.pressure == 2 ? .orange : .blue,
+                tint: .memoryTint(model.memory.pressure),
                 detail: "\(ramGB(model.memory.used)) de \(ramGB(model.memory.total)) GB · \(pressureLabel(model.memory.pressure))"
             )
             VStack(alignment: .leading, spacing: 6) {
