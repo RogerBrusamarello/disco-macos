@@ -38,6 +38,7 @@ final class StatusController: NSObject, NSPopoverDelegate {
     private let popover = NSPopover()
     private let model = StatsModel()
     private var iconTimer: Timer?
+    private var clickOutsideMonitor: Any?
 
     init(onClean: @escaping () -> Void, onKill: @escaping (String) -> Void, onOpen: @escaping () -> Void) {
         super.init()
@@ -72,14 +73,23 @@ final class StatusController: NSObject, NSPopoverDelegate {
             close()
         } else {
             model.start()
+            // Sem ativar o app: assim a janela do Disco (se aberta) não vem para frente junto.
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-            NSApp.activate(ignoringOtherApps: true)
+            popover.contentViewController?.view.window?.makeKey()
+            // Como os menus de Som/Wi-Fi: qualquer clique fora fecha.
+            clickOutsideMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+                Task { @MainActor in self?.close() }
+            }
         }
     }
 
     private func close() { popover.performClose(nil) }
 
     func popoverDidClose(_ notification: Notification) {
+        if let monitor = clickOutsideMonitor {
+            NSEvent.removeMonitor(monitor)
+            clickOutsideMonitor = nil
+        }
         model.stop()
         refreshIcon()
     }
@@ -217,6 +227,27 @@ struct AppLine: View {
     }
 }
 
+/// Linha clicável no estilo do rodapé dos menus de Som/Wi-Fi.
+struct MenuRow: View {
+    let title: String
+    let action: () -> Void
+    @State private var hovering = false
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 13))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(hovering ? Color.primary.opacity(0.1) : .clear, in: RoundedRectangle(cornerRadius: 5))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+    }
+}
+
 struct PopoverView: View {
     @ObservedObject var model: StatsModel
     let onClean: () -> Void
@@ -260,13 +291,12 @@ struct PopoverView: View {
 
             Divider()
 
-            HStack {
-                Button("Abrir Disco", action: onOpen)
-                Spacer()
-                Button("Monitor de Atividade", action: onActivity)
+            VStack(spacing: 0) {
+                MenuRow(title: "Abrir Disco…", action: onOpen)
+                MenuRow(title: "Monitor de Atividade…", action: onActivity)
             }
-            .buttonStyle(.borderless)
-            .font(.system(size: 12))
+            .padding(.horizontal, -8)
+            .padding(.top, -6)
         }
         .padding(16)
         .frame(width: 310)
