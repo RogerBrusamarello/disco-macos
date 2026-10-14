@@ -128,9 +128,14 @@ struct MainView: View {
         }
         .controlSize(.small)
         .padding(.horizontal, 20)
-        .padding(.top, 34)  // abaixo dos botões da janela
+        .padding(.top, 44)  // abaixo da barra de título com as abas
         .padding(.bottom, 20)
         .frame(width: 560)
+        .overlay(alignment: .top) {
+            TabSegments(selection: $state.tab)
+                .frame(width: 220)
+                .padding(.top, 7)  // alinhado com os botões da janela
+        }
         .onChange(of: state.tab) { _, tab in
             if tab == .clean { cleanModel.scan() }
         }
@@ -149,13 +154,6 @@ struct MainView: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            Picker("", selection: $state.tab) {
-                ForEach(WindowTab.allCases, id: \.self) { Text($0.rawValue).tag($0) }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .controlSize(.regular)
-            .fixedSize()
         }
     }
 
@@ -204,6 +202,40 @@ struct MainView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .groupBox()
             }
+        }
+    }
+}
+
+/// Controle segmentado nativo do macOS (HIG): segmentos de mesma largura, um selecionado por vez.
+struct TabSegments: NSViewRepresentable {
+    @Binding var selection: WindowTab
+
+    func makeNSView(context: Context) -> NSSegmentedControl {
+        let control = NSSegmentedControl(
+            labels: WindowTab.allCases.map(\.rawValue),
+            trackingMode: .selectOne,
+            target: context.coordinator,
+            action: #selector(Coordinator.changed(_:))
+        )
+        control.segmentDistribution = .fillEqually
+        control.segmentStyle = .automatic
+        control.controlSize = .regular
+        return control
+    }
+
+    func updateNSView(_ control: NSSegmentedControl, context: Context) {
+        context.coordinator.selection = $selection
+        control.selectedSegment = WindowTab.allCases.firstIndex(of: selection) ?? 0
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator(selection: $selection) }
+
+    final class Coordinator: NSObject {
+        var selection: Binding<WindowTab>
+        init(selection: Binding<WindowTab>) { self.selection = selection }
+
+        @objc func changed(_ sender: NSSegmentedControl) {
+            selection.wrappedValue = WindowTab.allCases[sender.selectedSegment]
         }
     }
 }
@@ -393,11 +425,10 @@ struct AppRow: View {
             Button(action: onKill) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 14))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(hovering ? .secondary : .tertiary)
             }
             .buttonStyle(.plain)
             .help("Forçar encerrar \(app.name)")
-            .opacity(hovering ? 1 : 0)
         }
         .padding(.horizontal, 10)
         .frame(height: 36)

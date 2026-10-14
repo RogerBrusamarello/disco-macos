@@ -131,6 +131,7 @@ Requer Xcode 15+ e [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew inst
    xcodebuild -project Disco.xcodeproj -scheme Disco -configuration Release -derivedDataPath build build
    cp -R build/Build/Products/Release/Disco.app /Applications/
    ```
+   Ou use `./scripts/install.sh`, que faz tudo isso e garante que o macOS use o widget de `/Applications` (o Xcode também registra a cópia de `build/`).
 
 ## Identidade
 
