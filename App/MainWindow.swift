@@ -234,10 +234,23 @@ struct MainView: View {
                 .frame(maxHeight: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .groupBox()
+                Text(appVersion)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.tertiary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 2)
             }
         }
     }
 }
+
+/// Versão da build instalada, lida do próprio app (ex.: "Disco 1.2 (3)").
+private let appVersion: String = {
+    let info = Bundle.main.infoDictionary
+    let version = info?["CFBundleShortVersionString"] as? String ?? "?"
+    let build = info?["CFBundleVersion"] as? String ?? "?"
+    return "Disco \(version) (\(build))"
+}()
 
 /// Alterna a janela entre tema claro e escuro.
 struct ThemeToggle: View {
