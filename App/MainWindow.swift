@@ -244,12 +244,12 @@ struct MainView: View {
     }
 }
 
-/// Versão da build instalada, lida do próprio app (ex.: "Version: 1.2 (3)").
+/// Versão e build instaladas, lidas do próprio app (ex.: "Version: 1.2" / "Build: 3").
 private let appVersion: String = {
     let info = Bundle.main.infoDictionary
     let version = info?["CFBundleShortVersionString"] as? String ?? "?"
     let build = info?["CFBundleVersion"] as? String ?? "?"
-    return "Version: \(version) (\(build))"
+    return "Version: \(version)\nBuild: \(build)"
 }()
 
 /// Alterna a janela entre tema claro e escuro.
