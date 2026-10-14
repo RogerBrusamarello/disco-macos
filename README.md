@@ -117,7 +117,7 @@ Requer Xcode 15+ e [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew inst
    ```bash
    xcodegen generate
    xcodebuild -project Disco.xcodeproj -scheme Disco -configuration Release -derivedDataPath build build
-   cp -R build/Build/Products/Release/Disco.app ~/Applications/
+   cp -R build/Build/Products/Release/Disco.app /Applications/
    ```
 
 ## Identidade

@@ -208,7 +208,7 @@ struct AppLine: View {
                     .foregroundStyle(hovering ? .secondary : .tertiary)
             }
             .buttonStyle(.plain)
-            .help("Forçar encerramento")
+            .help("Forçar encerrar \(app.name)")
             .onHover { hovering = $0 }
         }
         .padding(.vertical, 1)

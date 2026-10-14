@@ -10,7 +10,7 @@ settings:
     CODE_SIGN_IDENTITY: "Apple Development: ROGER BRUSAMARELLO (UJXDN537AZ)"
     SWIFT_VERSION: "5.0"
     MARKETING_VERSION: "1.2"
-    CURRENT_PROJECT_VERSION: "1"
+    CURRENT_PROJECT_VERSION: "3"
 targets:
   Disco:
     type: application
@@ -26,6 +26,8 @@ targets:
       path: App/Info.plist
       properties:
         CFBundleDisplayName: Disco
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSUIElement: true
         CFBundleURLTypes:
           - CFBundleURLName: br.com.attodev.disco
@@ -43,6 +45,8 @@ targets:
       path: Widget/Info.plist
       properties:
         CFBundleDisplayName: Disco
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     entitlements:
