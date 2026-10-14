@@ -1,8 +1,18 @@
 <p align="center">
-  <img src="docs/icon.png" width="128" alt="Ícone do Disco">
+  <img src="docs/icon.png" width="160" alt="Ícone do Disco: disco voador abduzindo uma vaquinha">
 </p>
 
-<h1 align="center">Disco</h1>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="brand/logo-disco-branco.svg">
+    <img src="brand/logo-disco.svg" width="220" alt="disco">
+  </picture>
+  <br>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="brand/slogan-branco.svg">
+    <img src="brand/slogan.svg" width="260" alt="Dê espaço ao seu Mac.">
+  </picture>
+</p>
 
 <p align="center">
   Widgets e ícone na barra de menus para acompanhar <b>disco</b> e <b>memória RAM</b> do Mac,<br>
@@ -36,7 +46,7 @@
   <img src="docs/menubar.png" width="700" alt="RAM e disco na barra de menus, cada ícone enchendo conforme o uso">
 </p>
 
-**RAM** (chip) e **disco** aparecem lado a lado, e cada ícone **vai enchendo conforme o uso**, como o da bateria. A RAM fica vermelha quando a pressão de memória está crítica, e o disco, acima de 90%. Deixando o mouse parado em cima, aparecem os detalhes. Clicando, abre um popover com tudo **ao vivo** (atualiza a cada 2 s enquanto está aberto):
+**RAM** (chip) e **disco** (o disco voador 🛸) aparecem lado a lado, e cada ícone **vai enchendo conforme o uso**, como o da bateria. A RAM fica vermelha quando a pressão de memória está crítica, e o disco, acima de 90%. Deixando o mouse parado em cima, aparecem os detalhes. Clicando, abre um popover com tudo **ao vivo** (atualiza a cada 2 s enquanto está aberto):
 
 <p align="center">
   <img src="docs/popover.png" width="366" alt="Popover com disco, memória e apps que mais usam memória">
@@ -93,6 +103,7 @@ Não mexe em documentos, fotos, projetos, Lixeira, configurações nem arquivos 
 App/       agente da barra de menus: popover, limpeza, forçar encerramento, leitura de processos
 Widget/    extensão WidgetKit: widgets Disco e Memória
 Shared/    leituras de disco/RAM, formatação e a lista de apps compartilhada
+brand/     identidade: ícone, ilustração, logo, slogan, símbolo da barra, fundo do .dmg e fontes
 project.yml  definição do projeto (XcodeGen)
 ```
 
@@ -108,3 +119,12 @@ Requer Xcode 15+ e [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew inst
    xcodebuild -project Disco.xcodeproj -scheme Disco -configuration Release -derivedDataPath build build
    cp -R build/Build/Products/Release/Disco.app ~/Applications/
    ```
+
+## Identidade
+
+Todos os arquivos estão em [`brand/`](brand):
+
+- **Ícone e ilustração:** disco voador roxo, feixe verde-menta e vaquinha, em PNG 1024 px.
+- **Logo:** [Fredoka](https://fonts.google.com/specimen/Fredoka) Bold. **Slogan:** [DM Sans](https://fonts.google.com/specimen/DM+Sans) Regular. As duas fontes têm licença SIL Open Font License 1.1, e os arquivos e as licenças estão em `brand/fontes/`.
+- **Barra de menus:** `menubar.svg`, uma silhueta de uma cor só. O app desenha essa mesma forma em vetor e vai enchendo conforme o uso do disco.
+- **Interface:** widgets e popover usam a fonte do sistema (SF Pro), para manter o visual nativo do macOS.

@@ -90,8 +90,8 @@ final class StatusController: NSObject, NSPopoverDelegate {
         let diskFraction = disk.total > 0 ? Double(disk.total - disk.free) / Double(disk.total) : 0
         let memoryFraction = memory.total > 0 ? min(Double(memory.used) / Double(memory.total), 1) : 0
         button.image = menuBarImage([
-            Gauge(symbol: "memorychip.fill", fraction: memoryFraction, critical: memory.pressure == 4),
-            Gauge(symbol: "internaldrive.fill", fraction: diskFraction, critical: diskFraction >= 0.9),
+            Gauge(glyph: .symbol("memorychip.fill"), fraction: memoryFraction, critical: memory.pressure == 4),
+            Gauge(glyph: .ufo, fraction: diskFraction, critical: diskFraction >= 0.9),
         ], height: NSStatusBar.system.thickness)
         button.toolTip = "Memória: \(ramGB(memory.used)) de \(ramGB(memory.total)) GB · \(pressureLabel(memory.pressure))\n"
             + "Macintosh HD: \(gb(disk.free)) GB livres"
@@ -99,23 +99,63 @@ final class StatusController: NSObject, NSPopoverDelegate {
 }
 
 struct Gauge {
-    let symbol: String
+    enum Glyph {
+        case symbol(String)
+        /// Disco voador da identidade (brand/menubar.svg).
+        case ufo
+    }
+
+    let glyph: Glyph
     let fraction: Double
     let critical: Bool
+
+    var image: NSImage? {
+        switch glyph {
+        case .symbol(let name):
+            NSImage(systemSymbolName: name, accessibilityDescription: nil)?
+                .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 15, weight: .regular))
+        case .ufo:
+            ufoImage
+        }
+    }
 }
+
+/// brand/menubar.svg (viewBox 32×20) redesenhado em vetor, na altura do chip de RAM (~13 pt).
+private let ufoImage: NSImage = {
+    let scale: CGFloat = 0.66
+    let image = NSImage(size: NSSize(width: 32 * scale, height: 20 * scale), flipped: true) { _ in
+        let p = NSBezierPath()
+        func pt(_ x: CGFloat, _ y: CGFloat) -> NSPoint { NSPoint(x: x * scale, y: y * scale) }
+        p.move(to: pt(16, 0))
+        p.curve(to: pt(6.5, 7), controlPoint1: pt(10.8, 0), controlPoint2: pt(7.4, 2.8))
+        p.curve(to: pt(0, 11), controlPoint1: pt(2.6, 7.9), controlPoint2: pt(0, 9.3))
+        p.curve(to: pt(10, 16.2), controlPoint1: pt(0, 13.5), controlPoint2: pt(4.5, 15.4))
+        p.line(to: pt(10, 18))
+        p.curve(to: pt(16, 20), controlPoint1: pt(10, 19.1), controlPoint2: pt(12.7, 20))
+        p.curve(to: pt(22, 18), controlPoint1: pt(19.3, 20), controlPoint2: pt(22, 19.1))
+        p.line(to: pt(22, 16.2))
+        p.curve(to: pt(32, 11), controlPoint1: pt(27.5, 15.4), controlPoint2: pt(32, 13.5))
+        p.curve(to: pt(25.5, 7), controlPoint1: pt(32, 9.3), controlPoint2: pt(29.4, 7.9))
+        p.curve(to: pt(16, 0), controlPoint1: pt(24.6, 2.8), controlPoint2: pt(21.2, 0))
+        p.close()
+        NSColor.black.setFill()
+        p.fill()
+        return true
+    }
+    image.isTemplate = true
+    return image
+}()
 
 /// Texto e ícones numa imagem só, todos centralizados na mesma linha
 /// (centro da altura das maiúsculas = centro do contorno de cada símbolo).
 func menuBarImage(_ gauges: [Gauge], height: CGFloat) -> NSImage {
     let anyCritical = gauges.contains(where: \.critical)
     let font = NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .medium)
-    let config = NSImage.SymbolConfiguration(pointSize: 15, weight: .regular)
     let textGap: CGFloat = 3, groupGap: CGFloat = 9
 
     struct Part { let text: NSAttributedString; let textWidth: CGFloat; let symbol: NSImage; let gauge: Gauge }
     let parts: [Part] = gauges.compactMap { g in
-        guard let symbol = NSImage(systemSymbolName: g.symbol, accessibilityDescription: nil)?
-            .withSymbolConfiguration(config) else { return nil }
+        guard let symbol = g.image else { return nil }
         let text = NSAttributedString(string: "\(Int((g.fraction * 100).rounded()))%", attributes: [
             .font: font,
             // Template usa só o alfa; com algo em vermelho a imagem é colorida e o texto segue a barra.
