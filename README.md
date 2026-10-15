@@ -38,8 +38,8 @@
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/janela-escuro.png">
-    <img src="docs/readme/janela-claro.png" width="560" alt="Janela do disco na aba Visão geral: cartões de disco e memória e a lista dos apps que mais usam memória">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/visao-geral-escuro.png">
+    <img src="docs/readme/visao-geral-claro.png" width="560" alt="Janela do disco na aba Visão geral: cartões de disco e memória e a lista dos apps que mais usam memória, com a parte de cada um na swap">
   </picture>
 </p>
 
@@ -55,8 +55,8 @@ Abre pelo Spotlight (`⌘ Espaço` → *Disco*), pelo Finder, clicando num widge
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/limpeza-escuro.png">
-    <img src="docs/readme/limpeza-claro.png" width="560" alt="Aba Limpeza: itens com seleção, tamanho de cada um e o botão Abduzir selecionados">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/limpeza-swap-escuro.png">
+    <img src="docs/readme/limpeza-swap-claro.png" width="560" alt="Aba Limpeza: itens com seleção e tamanho de cada um, a swap em uso com o link Ver apps e o botão Abduzir selecionados">
   </picture>
 </p>
 
