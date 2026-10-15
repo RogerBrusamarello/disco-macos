@@ -124,8 +124,9 @@ draft() {
     build_dmg "$tag"
     release_notes "$tag" "$version"
     say "criando o rascunho do release $tag…"
-    gh_run release create "$tag" "$OUT/Disco.dmg" -R $REPO --draft \
-        --target "$(git rev-parse "$tag^{commit}")" --title "$TITLE" --notes-file "$NOTES"
+    # Sem --target: o commit ainda não está no GitHub (o push vem depois). O rascunho não cria a tag;
+    # ao publicar, o GitHub usa a tag que o push enviou.
+    gh_run release create "$tag" "$OUT/Disco.dmg" -R $REPO --draft --title "$TITLE" --notes-file "$NOTES"
 }
 
 # Publica só depois que a tag existe no GitHub; se publicasse antes, o GitHub criaria a tag e o push dela falharia.
