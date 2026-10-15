@@ -21,7 +21,7 @@
 
 <p align="center">
   <a href="https://github.com/RogerBrusamarello/disco-macos/releases/latest"><b>⬇︎ Baixar Disco.dmg</b></a>
-  &nbsp;·&nbsp; versão 1.2 &nbsp;·&nbsp; macOS 14 ou mais recente &nbsp;·&nbsp; Apple Silicon
+  &nbsp;·&nbsp; versão 1.4 &nbsp;·&nbsp; macOS 14 ou mais recente &nbsp;·&nbsp; Apple Silicon
 </p>
 
 ---
@@ -32,14 +32,15 @@
 - **Lista os apps que mais usam memória**, somando os processos auxiliares de cada um (Chrome, apps em Electron…) e o que foi aberto no terminal dele (`node`, `gopls`… contam no VS Code ou no Terminal), com quanto de cada app está na swap e um **ⓧ para forçar o encerramento**.
 - **Abduz temporários:** você escolhe o que apagar entre caches, temporários do sistema, builds do Xcode, simuladores, pacotes e logs antigos, e vê o tamanho de cada item antes.
 - **Respeita o visual do macOS:** modo claro e escuro, fonte do sistema, vidro translúcido e cores flat na paleta da marca.
+- **Se atualiza sozinho:** procura versões novas no GitHub uma vez por dia e, com um clique, baixa, instala e reabre.
 - **Fica leve:** sem ícone no Dock, abre junto com o Mac e só atualiza com frequência quando você está olhando.
 
 ## Janela
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/visao-geral-escuro.png">
-    <img src="docs/readme/visao-geral-claro.png" width="560" alt="Janela do disco na aba Visão geral: cartões de disco e memória e a lista dos apps que mais usam memória, com a parte de cada um na swap">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/janela-visao-geral-escuro.png">
+    <img src="docs/readme/janela-visao-geral-claro.png" width="560" alt="Janela do disco na aba Visão geral: cartões de disco e memória e a lista dos apps que mais usam memória, com a parte de cada um na swap">
   </picture>
 </p>
 
@@ -47,16 +48,17 @@ Abre pelo Spotlight (`⌘ Espaço` → *Disco*), pelo Finder, clicando num widge
 
 - **Visão geral:** cartões do **Macintosh HD** e da **Memória** e a lista rolável com até 10 apps. Embaixo da memória de cada app aparece a estimativa da parte dele na swap (a partir de 50 MB). Cada app tem um ⓧ sempre visível, com a dica *Forçar encerrar*, e uma confirmação antes de fechar; encerrar também fecha os processos abertos no terminal do app.
 - **Limpeza:** a lista do que pode ser abduzido (veja abaixo).
+- **Atualizações:** a versão instalada, a mais recente no GitHub e as novidades (veja abaixo).
 - **Tema:** o botão ☀︎/☾ no canto superior direito alterna a janela entre claro e escuro, e a escolha fica salva.
-- **Versão e build** instaladas no rodapé.
+- **Rodapé:** versão e build instaladas e o link **Procurar atualizações**, que vira o botão **Atualizar para X** quando sai uma versão nova.
 - Enquanto a janela está aberta, o disco aparece no Dock e no `⌘ Tab`. Ao fechar, volta a ficar só na barra de menus.
 
 ## Abduzir temporários
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/limpeza-swap-escuro.png">
-    <img src="docs/readme/limpeza-swap-claro.png" width="560" alt="Aba Limpeza: itens com seleção e tamanho de cada um, a swap em uso com o link Ver apps e o botão Abduzir selecionados">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/janela-limpeza-escuro.png">
+    <img src="docs/readme/janela-limpeza-claro.png" width="560" alt="Aba Limpeza: itens com seleção e tamanho de cada um, a swap em uso com o link Ver apps e o botão Abduzir selecionados">
   </picture>
 </p>
 
@@ -79,6 +81,24 @@ Abaixo da lista aparece quanto de **swap** está em uso: a memória que o macOS 
 
 A parte de cada app é uma estimativa: o macOS informa quanto de cada processo foi comprimido, e o disco reparte a swap real por essa proporção, então a soma dos apps nunca passa do total.
 
+## Atualizações
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/janela-atualizacoes-escuro.png">
+    <img src="docs/readme/janela-atualizacoes-claro.png" width="560" alt="Aba Atualizações: versão instalada, versão mais recente, última verificação, opção de procurar todo dia, novidades da versão e os botões Ver no GitHub e Procurar atualizações">
+  </picture>
+</p>
+
+O disco procura versões novas nos [releases do GitHub](https://github.com/RogerBrusamarello/disco-macos/releases) uma vez por dia. Quando acha, o botão **Atualizar para X** aparece no painel da barra de menus, no rodapé da Visão geral e na aba **Atualizações**.
+
+- **Aba Atualizações:** versão instalada, versão mais recente, quando foi a última verificação, a opção **Procurar automaticamente todo dia** e as novidades da versão. **Procurar atualizações** busca na hora, e **Ver no GitHub** abre a página do release.
+- **Atualizar:** aparece um aviso com as novidades. Em **Atualizar e Reabrir**, o disco baixa o `.dmg`, confere se o arquivo é o mesmo publicado no GitHub (sha256) e se o app foi assinado pelo mesmo desenvolvedor, troca a versão instalada e abre de novo, já com o widget novo.
+- **Sem o bloqueio do Gatekeeper:** a versão baixada pelo próprio disco não ganha a marca de quarentena, então não precisa liberar de novo em Privacidade e Segurança.
+- Se o disco não tiver permissão para trocar o app (usuário sem administrador, por exemplo), ele abre o download do `.dmg` no navegador.
+
+A atualização automática vale a partir da versão 1.4. Quem está na 1.3 ou antes atualiza uma última vez à mão.
+
 ## Barra de menus
 
 <p align="center">
@@ -88,13 +108,14 @@ A parte de cada app é uma estimativa: o macOS informa quanto de cada processo f
 Na barra de menus fica só o **disco voador em contorno**, no mesmo traço dos ícones do sistema. Deixando o mouse em cima, aparecem a memória e o espaço livre. Clicando, abre o painel:
 
 <p align="center">
-  <img src="docs/readme/painel.png" width="640" alt="Painel da barra de menus nos temas escuro e claro: logo, módulo do disco, módulo da memória com os apps que mais usam memória e o botão Abrir Disco">
+  <img src="docs/readme/painel-claro-escuro.png" width="640" alt="Painel da barra de menus nos temas escuro e claro: logo, módulo do disco, módulo da memória com os apps que mais usam memória, o botão Abrir Disco e o rodapé com a versão e Procurar atualizações">
 </p>
 
 - Segue o estilo da **Central de Controle**: vidro translúcido, cantos arredondados, sem setinha e com o conteúdo em módulos.
 - **Módulo Disco:** a barra de uso e o botão **Abduzir temporários**.
 - **Módulo Memória:** a barra colorida pela pressão de memória e os 5 apps que mais usam memória, cada um com ⓧ.
 - **Abrir Disco** abre a janela.
+- **Rodapé:** a versão instalada e **Procurar atualizações**, que vira **Atualizar para X** quando tem versão nova.
 - Os números atualizam a cada 2 segundos enquanto o painel está aberto. Um clique fora fecha o painel.
 
 ## Widgets
@@ -127,7 +148,7 @@ Na barra de menus fica só o **disco voador em contorno**, no mesmo traço dos �
 3. O disco voador aparece na barra de menus, e o disco passa a abrir junto com o Mac.
 4. **Widgets:** clique em **Editar Widgets…**, no fim da Central de Notificações, busque **Disco** ou **Memória** e arraste para a barra.
 
-> **Atualizando de uma versão anterior?** Se os widgets continuarem com o visual antigo, remova e adicione de novo em **Editar Widgets…**.
+> **Atualizando de uma versão anterior?** A partir da 1.4, o próprio disco se atualiza (veja [Atualizações](#atualizações)). Se os widgets continuarem com o visual antigo, remova e adicione de novo em **Editar Widgets…**.
 
 **Reabrir:** `⌘ Espaço` → *Disco*.
 **Fechar de vez:** Monitor de Atividade → Disco → ⓧ. Para não abrir mais no login: **Ajustes do Sistema → Geral → Itens de Início**.
@@ -148,6 +169,7 @@ Na barra de menus fica só o **disco voador em contorno**, no mesmo traço dos �
 - **Disco e RAM total:** os widgets leem direto (`URLResourceValues` e `host_statistics64`), o que o sandbox permite.
 - **Apps que mais usam memória:** o sandbox dos widgets **não deixa ver outros processos**. Por isso o app disco, em segundo plano, lê a memória de cada processo a cada minuto (`proc_pid_rusage` → `phys_footprint`, o mesmo valor do Monitor de Atividade). Ele soma os processos de cada app e grava a lista num App Group que os widgets conseguem ler. Entram só os apps das pastas de Aplicativos.
 - **Botões dos widgets:** os widgets também não podem apagar arquivos nem encerrar apps. Os botões abrem links `discowidget://…`, e o app faz a ação: abre a aba Limpeza, abre a janela ou pede confirmação para forçar o encerramento.
+- **Atualizações:** o app lê `api.github.com/repos/RogerBrusamarello/disco-macos/releases/latest`, compara a tag (`v1.4` → `1.4`) com a versão instalada e baixa o asset `Disco.dmg`. Antes de trocar o app, confere o `sha256` que o GitHub publica para o asset e a assinatura do código (mesmo identificador e mesmo Team ID). A troca é feita no lugar, e o app e o widget são registrados de novo, como no `install.sh`.
 - **Consumo:** o app fica parado quase o tempo todo. Faz uma leitura por minuto, que leva milissegundos, e só atualiza a cada 2 s enquanto o painel ou a janela estão abertos.
 
 ## Compilar
@@ -155,22 +177,29 @@ Na barra de menus fica só o **disco voador em contorno**, no mesmo traço dos �
 Requer Xcode 15+ e [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
 
 1. Em `project.yml`, troque `DEVELOPMENT_TEAM` e `CODE_SIGN_IDENTITY` pelos seus. Uma conta Apple gratuita resolve.
-2. Troque o prefixo do App Group `HM8VRSUTC3` pelo seu Team ID em `project.yml` e em `Shared/TopApps.swift`.
+2. Troque o prefixo do App Group `HM8VRSUTC3` pelo seu Team ID em `project.yml` e em `Shared/TopApps.swift`. Em `App/Updater.swift`, troque o repositório e o Team ID que a atualização confere.
 3. Compile e instale:
    ```bash
    ./scripts/install.sh
    ```
    O script gera o projeto, compila, instala em `/Applications` e garante que o macOS use o widget dessa cópia (o Xcode também registra a cópia de `build/`, e o sistema pode acabar escolhendo ela).
 
+### Publicar uma versão
+
+1. Suba `MARKETING_VERSION` e `CURRENT_PROJECT_VERSION` em `project.yml`.
+2. Gere o `Disco.dmg` com essa versão.
+3. Crie o release no GitHub com a tag `vX.Y` e o `Disco.dmg` anexado. Os apps instalados (1.4 em diante) acham a versão nova em até um dia.
+
 ### Estrutura
 
 ```
-App/        agente: barra de menus e painel, janela (Visão geral e Limpeza), limpeza, leitura de processos
+App/        agente: barra de menus e painel, janela (Visão geral, Limpeza e Atualizações), limpeza, leitura de processos, atualização pelo GitHub
 Widget/     extensão WidgetKit: widgets Disco e Memória
 Shared/     leituras de disco e RAM, paleta e botão-cápsula da marca, lista de apps compartilhada
 brand/      identidade: ícone, ilustração, logo, slogan, símbolo da barra, fundo do .dmg e fontes
+AGENTS.md   regras para quem mexe no projeto, pessoa ou agente (o CLAUDE.md só importa ele)
 docs/       imagens deste README
-scripts/    install.sh
+scripts/    install.sh (compila e instala) e screenshots.sh (prints deste README)
 project.yml definição do projeto (XcodeGen)
 ```
 

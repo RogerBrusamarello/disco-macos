@@ -430,7 +430,9 @@ struct UpdatesView: View {
 
     private var notes: String {
         guard let latest = updater.latest else { return "Procure atualizações para ver as novidades da versão mais recente." }
-        let text = Updater.plainNotes(latest.notes)
+        var text = Updater.plainNotes(latest.notes)
+        // O título da caixa já diz "Novidades da versão X".
+        if text.hasPrefix("Novidades\n") { text = String(text.dropFirst(10)).trimmingCharacters(in: .whitespacesAndNewlines) }
         return text.isEmpty ? "Sem notas para esta versão." : text
     }
 
