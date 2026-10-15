@@ -101,14 +101,15 @@ final class StatusController: NSObject, NSWindowDelegate {
             backing: .buffered,
             defer: true
         )
-        host = NSHostingView(rootView: PopoverView(model: model, onClean: {}, onKill: { _ in }, onOpen: {}))
+        host = NSHostingView(rootView: PopoverView(model: model, onClean: {}, onKill: { _ in }, onOpen: {}, onUpdate: {}))
         super.init()
 
         host.rootView = PopoverView(
             model: model,
             onClean: { [weak self] in self?.close(); onClean() },
             onKill: { [weak self] path in self?.close(); onKill(path) },
-            onOpen: { [weak self] in self?.close(); onOpen() }
+            onOpen: { [weak self] in self?.close(); onOpen() },
+            onUpdate: { [weak self] in self?.close(); Updater.shared.confirmAndInstall() }
         )
         panel.isFloatingPanel = true
         panel.level = .popUpMenu
@@ -332,9 +333,11 @@ struct AppLine: View {
 
 struct PopoverView: View {
     @ObservedObject var model: StatsModel
+    @ObservedObject var updater = Updater.shared
     let onClean: () -> Void
     let onKill: (String) -> Void
     let onOpen: () -> Void
+    let onUpdate: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -386,6 +389,16 @@ struct PopoverView: View {
                 CapsuleLabel(title: "Abrir Disco", systemImage: "macwindow", style: .outline, fullWidth: true)
             }
             .buttonStyle(CapsuleButtonStyle())
+
+            HStack {
+                Text("Versão \(updater.currentVersion)")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.tertiary)
+                Spacer()
+                UpdateStatus(updater: updater, onInstall: onUpdate)
+            }
+            .frame(height: 26)  // mesma altura com ou sem o botão: o painel não muda de tamanho aberto
+            .padding(.horizontal, 4)
         }
         .padding(12)
         .frame(width: 320)

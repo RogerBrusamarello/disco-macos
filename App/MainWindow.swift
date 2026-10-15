@@ -17,11 +17,13 @@ extension Font {
 enum WindowTab: String, CaseIterable {
     case overview = "Visão geral"
     case clean = "Limpeza"
+    case updates = "Atualizações"
 
     var systemImage: String {
         switch self {
         case .overview: "gauge.with.dots.needle.67percent"
         case .clean: "sparkles"
+        case .updates: "arrow.down.circle"
         }
     }
 
@@ -29,6 +31,7 @@ enum WindowTab: String, CaseIterable {
         switch self {
         case .overview: "Disco, memória e apps que mais usam memória"
         case .clean: "Escolher e abduzir arquivos temporários"
+        case .updates: "Versão instalada e versões novas no GitHub"
         }
     }
 }
@@ -139,6 +142,7 @@ struct MainView: View {
     @ObservedObject var model: StatsModel
     @ObservedObject var cleanModel: CleanModel
     @ObservedObject var state: WindowState
+    @ObservedObject var updater = Updater.shared
     let onKill: (String) -> Void
     let onActivity: () -> Void
 
@@ -147,7 +151,7 @@ struct MainView: View {
             header
             // Hierarquia: marca primeiro, depois a troca de aba.
             TabToggle(selection: $state.tab)
-                .frame(width: 280)
+                .frame(width: 400)
                 .frame(maxWidth: .infinity)
             Group {
                 switch state.tab {
@@ -156,6 +160,7 @@ struct MainView: View {
                     CleanView(model: cleanModel) {
                         withAnimation(.snappy(duration: 0.25)) { state.tab = .overview }
                     }
+                case .updates: UpdatesView(updater: updater)
                 }
             }
             .frame(height: tabHeight, alignment: .top)
@@ -237,11 +242,15 @@ struct MainView: View {
                 .frame(maxHeight: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .groupBox()
-                Text(appVersion)
-                    .font(.system(size: 10))
-                    .foregroundStyle(.tertiary)
-                    .padding(.leading, 4)  // mesma margem de "Mais usam memória"
-                    .padding(.top, 2)
+                HStack(alignment: .bottom) {
+                    Text(appVersion)
+                        .font(.system(size: 10))
+                        .foregroundStyle(.tertiary)
+                    Spacer()
+                    UpdateStatus(updater: updater)
+                }
+                .padding(.horizontal, 4)  // mesma margem de "Mais usam memória"
+                .padding(.top, 2)
             }
         }
     }
@@ -317,6 +326,149 @@ struct TabToggle: View {
         }
         .padding(3)
         .background(.fill.secondary, in: Capsule())
+    }
+}
+
+// MARK: Atualizações
+
+/// Versão instalada, o último release do GitHub com as novidades e o botão para procurar na hora.
+struct UpdatesView: View {
+    @ObservedObject var updater: Updater
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Atualizações").font(.system(size: 13, weight: .semibold))
+                Text("O Disco procura versões novas no GitHub e se atualiza sozinho, sem precisar baixar o .dmg.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.leading, 4)
+
+            VStack(spacing: 0) {
+                InfoRow(title: "Versão instalada", value: "\(updater.currentVersion) (build \(updater.currentBuild))")
+                Divider().padding(.leading, 12)
+                InfoRow(title: "Versão mais recente", value: updater.latest?.version ?? "—")
+                Divider().padding(.leading, 12)
+                TimelineView(.periodic(from: .now, by: 30)) { _ in
+                    InfoRow(title: "Última verificação", value: lastCheckLabel)
+                }
+                Divider().padding(.leading, 12)
+                HStack {
+                    Text("Procurar automaticamente todo dia").font(.system(size: 13))
+                    Spacer()
+                    Toggle("", isOn: $updater.checksDaily)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .tint(.brandPurple)
+                }
+                .padding(.horizontal, 12)
+                .frame(height: 40)
+            }
+            .groupBox()
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(notesTitle)
+                    .font(.system(size: 13, weight: .semibold))
+                    .padding(.leading, 4)
+                ScrollView {
+                    Text(notes)
+                        .font(.system(size: 12))
+                        .foregroundStyle(updater.latest == nil ? .secondary : .primary)
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(12)
+                }
+                .frame(maxHeight: .infinity)
+                .groupBox()
+            }
+
+            HStack(alignment: .center) {
+                Label(statusText, systemImage: statusIcon)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer()
+                if updater.isBusy {
+                    ProgressView().controlSize(.small).padding(.trailing, 6)
+                }
+                Button { NSWorkspace.shared.open(updater.latest?.page ?? updater.releasesPage) } label: {
+                    CapsuleLabel(title: "Ver no GitHub", systemImage: "arrow.up.right.square", style: .secondary)
+                }
+                .buttonStyle(CapsuleButtonStyle())
+                if let release = updater.available {
+                    Button { updater.confirmAndInstall() } label: {
+                        CapsuleLabel(title: "Atualizar para \(release.version)", systemImage: "arrow.down.circle.fill")
+                    }
+                    .buttonStyle(CapsuleButtonStyle())
+                } else {
+                    Button { updater.check(userInitiated: true) } label: {
+                        CapsuleLabel(title: "Procurar atualizações", systemImage: "arrow.triangle.2.circlepath")
+                    }
+                    .buttonStyle(CapsuleButtonStyle())
+                    .disabled(updater.isBusy)
+                }
+            }
+            .padding(.horizontal, 4)
+        }
+        // A versão mais recente não fica salva entre aberturas: ao entrar na aba, busca em silêncio.
+        .task { if updater.latest == nil { updater.check(userInitiated: false) } }
+    }
+
+    private var lastCheckLabel: String {
+        guard let date = updater.lastCheck else { return "Nunca" }
+        if Date.now.timeIntervalSince(date) < 60 { return "Agora mesmo" }
+        return date.formatted(Date.RelativeFormatStyle(presentation: .named, locale: Locale(identifier: "pt_BR")))
+            .capitalizedFirst
+    }
+
+    private var notesTitle: String {
+        guard let latest = updater.latest else { return "Novidades" }
+        return "Novidades da versão \(latest.version)"
+    }
+
+    private var notes: String {
+        guard let latest = updater.latest else { return "Procure atualizações para ver as novidades da versão mais recente." }
+        let text = Updater.plainNotes(latest.notes)
+        return text.isEmpty ? "Sem notas para esta versão." : text
+    }
+
+    private var statusText: String {
+        switch updater.state {
+        case .checking: "Procurando atualizações…"
+        case .installing(let step): step
+        case .failed(let message): message
+        case .available(let release): "Versão \(release.version) disponível"
+        case .idle, .upToDate: updater.latest == nil ? "Não verificado" : "Está atualizado"
+        }
+    }
+
+    private var statusIcon: String {
+        switch updater.state {
+        case .failed: "exclamationmark.triangle.fill"
+        case .available: "arrow.down.circle.fill"
+        case .checking, .installing: "arrow.triangle.2.circlepath"
+        case .idle, .upToDate: updater.latest == nil ? "clock" : "checkmark.circle.fill"
+        }
+    }
+}
+
+struct InfoRow: View {
+    let title: String
+    let value: String
+
+    var body: some View {
+        HStack {
+            Text(title).font(.system(size: 13))
+            Spacer()
+            Text(value)
+                .font(.system(size: 13))
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+        }
+        .padding(.horizontal, 12)
+        .frame(height: 36)
     }
 }
 
@@ -569,6 +721,52 @@ struct AppRow: View {
         .background(hovering ? Color.primary.opacity(0.05) : .clear)
         .contentShape(Rectangle())
         .onHover { hovering = $0 }
+    }
+}
+
+/// Estado da atualização em uma linha: link para procurar, progresso, resultado ou o botão para atualizar.
+struct UpdateStatus: View {
+    @ObservedObject var updater: Updater
+    var onInstall: () -> Void = { Updater.shared.confirmAndInstall() }
+    @State private var hovering = false
+
+    var body: some View {
+        Group {
+            switch updater.state {
+            case .idle:
+                Button { updater.check(userInitiated: true) } label: {
+                    Label("Procurar atualizações", systemImage: "arrow.triangle.2.circlepath")
+                        .foregroundStyle(hovering ? AnyShapeStyle(.secondary) : AnyShapeStyle(.tertiary))
+                }
+                .buttonStyle(.plain)
+                .onHover { hovering = $0 }
+            case .checking:
+                progress("Procurando atualizações…")
+            case .installing(let step):
+                progress(step)
+            case .upToDate:
+                Label("Você tem a versão mais recente", systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(.secondary)
+            case .failed(let message):
+                Label(message, systemImage: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.secondary)
+            case .available(let release):
+                Button(action: onInstall) {
+                    CapsuleLabel(title: "Atualizar para \(release.version)", systemImage: "arrow.down.circle.fill")
+                }
+                .buttonStyle(CapsuleButtonStyle())
+                .help("Nova versão do Disco disponível no GitHub")
+            }
+        }
+        .font(.system(size: 11))
+        .lineLimit(1)
+    }
+
+    private func progress(_ text: String) -> some View {
+        HStack(spacing: 6) {
+            ProgressView().controlSize(.mini)
+            Text(text).foregroundStyle(.secondary)
+        }
     }
 }
 
