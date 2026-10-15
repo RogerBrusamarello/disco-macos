@@ -79,7 +79,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
         alert.messageText = "Forçar encerramento de \(name)?"
-        alert.informativeText = "Alterações não salvas serão perdidas."
+        alert.informativeText = "Alterações não salvas serão perdidas. Processos abertos pelo app (ex.: no terminal dele) também serão encerrados."
         alert.icon = NSWorkspace.shared.icon(forFile: path)
         alert.addButton(withTitle: "Forçar Encerrar")
         alert.addButton(withTitle: "Cancelar")

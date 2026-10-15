@@ -133,7 +133,7 @@ private func appIcon(_ path: String) -> NSImage {
 }
 
 /// Altura fixa do conteúdo das abas, para a janela não mudar de tamanho ao trocar.
-private let tabHeight: CGFloat = 352
+private let tabHeight: CGFloat = 468
 
 struct MainView: View {
     @ObservedObject var model: StatsModel
@@ -152,7 +152,10 @@ struct MainView: View {
             Group {
                 switch state.tab {
                 case .overview: overview
-                case .clean: CleanView(model: cleanModel)
+                case .clean:
+                    CleanView(model: cleanModel) {
+                        withAnimation(.snappy(duration: 0.25)) { state.tab = .overview }
+                    }
                 }
             }
             .frame(height: tabHeight, alignment: .top)
@@ -321,6 +324,7 @@ struct TabToggle: View {
 
 struct CleanView: View {
     @ObservedObject var model: CleanModel
+    let onShowApps: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -348,6 +352,8 @@ struct CleanView: View {
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             .groupBox()
             .disabled(model.cleaning)
+
+            SwapLink(used: model.swapUsed, action: onShowApps)
 
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 0) {
@@ -414,6 +420,48 @@ struct CleanRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+}
+
+/// Swap não entra na seleção (o macOS não deixa apagar): leva à Visão geral, onde encerrar
+/// os apps que a ocupam devolve o espaço.
+struct SwapLink: View {
+    let used: Int64
+    let action: () -> Void
+    @State private var hovering = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: "memorychip")
+                    .font(.system(size: 15))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 18)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(used > 0 ? "Swap: \(ramLabel(used)) em uso" : "Swap: nada em uso")
+                        .font(.system(size: 13))
+                        .monospacedDigit()
+                    Text("Não dá para apagar direto. Encerrar os apps que mais usam memória devolve esse espaço.")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 0)
+                Text("Ver apps")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Color.brandPurple)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Color.brandPurple)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(hovering ? Color.primary.opacity(0.05) : .clear, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+        .groupBox()
     }
 }
 
@@ -494,11 +542,20 @@ struct AppRow: View {
                 }
                 .frame(height: 3)
             }
-            Text(ramLabel(app.bytes))
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
-                .monospacedDigit()
-                .frame(width: 64, alignment: .trailing)
+            VStack(alignment: .trailing, spacing: 0) {
+                Text(ramLabel(app.bytes))
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                // Abaixo de ~50 MB é ruído; não vale a linha.
+                if let swap = app.swap, swap >= 50 * 1_048_576 {
+                    Text("≈ \(ramLabel(swap)) swap")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.tertiary)
+                        .help("Estimativa da parte deste app na swap. Encerrar o app devolve esse espaço.")
+                }
+            }
+            .monospacedDigit()
+            .frame(width: 84, alignment: .trailing)
             Button(action: onKill) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 14))

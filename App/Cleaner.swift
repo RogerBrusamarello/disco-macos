@@ -21,6 +21,13 @@ enum Cleaner {
             id: "caches", title: "Cache de aplicativos", subtitle: "~/Library/Caches",
             dirs: [home.appending(path: "Library/Caches")]
         ),
+        // Mesmo critério do macOS para /tmp: só o que está parado há mais de 3 dias,
+        // para não apagar arquivos que apps abertos ainda estão usando.
+        CleanItem(
+            id: "temp", title: "Temporários do sistema", subtitle: "Pasta temporária do macOS, com mais de 3 dias",
+            dirs: [FileManager.default.temporaryDirectory],
+            olderThan: 3 * 24 * 3600
+        ),
         CleanItem(
             id: "derived", title: "Xcode DerivedData", subtitle: "Builds temporários do Xcode",
             dirs: [home.appending(path: "Library/Developer/Xcode/DerivedData")]
@@ -105,6 +112,7 @@ final class CleanModel: ObservableObject {
     @Published var scanning = false
     @Published var cleaning = false
     @Published var freed: Int64?
+    @Published var swapUsed: Int64 = 0
 
     var total: Int64 { selected.reduce(0) { $0 + (sizes[$1] ?? 0) } }
 
@@ -116,6 +124,7 @@ final class CleanModel: ObservableObject {
         guard !scanning, !cleaning else { return }
         scanning = true
         sizes = [:]
+        swapUsed = Metrics.swap().used
         DispatchQueue.global(qos: .userInitiated).async {
             for item in Cleaner.items {
                 let size = Cleaner.size(of: item)

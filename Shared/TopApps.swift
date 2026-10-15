@@ -5,6 +5,8 @@ struct TopApp: Codable, Hashable {
     let name: String
     let path: String
     let bytes: Int64
+    /// Parte do app na swap (estimativa; a soma de todos os apps dá a swap do sistema). Opcional para ler snapshots antigos.
+    var swap: Int64? = nil
 }
 
 struct TopAppsSnapshot: Codable {
