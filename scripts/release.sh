@@ -4,6 +4,7 @@
 #   ./scripts/release.sh dmg <ref>       compila o commit <ref> (tag, branch, HEAD) e gera build/release/Disco.dmg
 #   ./scripts/release.sh draft <tag>     gera o .dmg e cria o release como rascunho, com o .dmg anexado
 #   ./scripts/release.sh publish <tag>   espera a tag chegar no GitHub e publica o rascunho
+#   ./scripts/release.sh notes <tag>     mostra o título e as notas que o release vai ter (antes do push)
 # DISCO_RELEASE_DRY_RUN=1 mostra os comandos do gh em vez de rodar.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -98,12 +99,15 @@ EOF
 
 # Título e notas: de uma tag anotada (`git tag -a v1.4`), a primeira linha vira o título e o resto as notas.
 # Tag simples: "Disco X.Y" e a lista de commits desde a tag anterior.
+# O git apaga das mensagens de tag as linhas que começam com "#", então o "## Novidades" é posto aqui.
 release_notes() {
     local tag=$1 version=$2 notes=$OUT/notes.md subject body previous
     subject=$(git tag -l --format='%(contents:subject)' "$tag")
     body=$(git tag -l --format='%(contents:body)' "$tag")
     if [[ $(git cat-file -t "$tag") == tag && -n $subject ]]; then
         TITLE=$subject
+        body=${body#"${body%%[![:space:]]*}"}  # sem linhas em branco no começo
+        [[ $body == '#'* ]] || body="## Novidades"$'\n\n'"$body"
         print -r -- "$body" > "$notes"
     else
         TITLE="Disco $version"
@@ -152,5 +156,13 @@ case ${1:-} in
     dmg) build_dmg "${2:-HEAD}" ;;
     draft) draft "${2:?uso: release.sh draft vX.Y}" ;;
     publish) publish "${2:?uso: release.sh publish vX.Y}" ;;
-    *) die "uso: release.sh dmg [ref] | draft vX.Y | publish vX.Y" ;;
+    notes)
+        tag=${2:?uso: release.sh notes vX.Y}
+        mkdir -p "$OUT"
+        release_notes "$tag" "${tag#v}"
+        print -r -- "$TITLE"
+        print
+        cat "$NOTES"
+        ;;
+    *) die "uso: release.sh dmg [ref] | draft vX.Y | publish vX.Y | notes vX.Y" ;;
 esac

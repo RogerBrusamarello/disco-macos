@@ -208,21 +208,19 @@ git config core.hooksPath .githooks
 ```
 
 1. Suba `MARKETING_VERSION` e `CURRENT_PROJECT_VERSION` em `project.yml` e commite.
-2. Crie a tag. Com uma tag anotada, a primeira linha vira o título do release e o resto vira as notas, que também aparecem na aba Atualizações do app:
+2. Crie a tag. Com uma tag anotada, a primeira linha vira o título do release e o resto vira as notas, que também aparecem na aba Atualizações do app. O título "## Novidades" é posto pelo script: o git apaga das mensagens de tag as linhas que começam com `#`, então escreva só os itens:
    ```bash
-   git tag -a v1.5 -m "Disco 1.5 — título" -m "## Novidades
-
-   - **Item:** o que mudou."
+   git tag -a v1.6 -m "Disco 1.6 — título 🛸" -m "- **Item:** o que mudou."
    ```
-   Com uma tag simples (`git tag v1.5`), o título fica "Disco 1.5" e as notas listam os commits desde a tag anterior.
+   Com uma tag simples (`git tag v1.6`), o título fica "Disco 1.6" e as notas listam os commits desde a tag anterior. Para ver o título e as notas antes do push: `./scripts/release.sh notes v1.6`.
 3. Dê push da tag:
    ```bash
-   git push origin main v1.5
+   git push origin main v1.6
    ```
 
 Antes do push, o hook confere se a tag bate com a versão do `project.yml`, compila a tag do zero numa cópia limpa (sem as mudanças não commitadas), confere a assinatura, monta o `Disco.dmg` (mesma janela, fundo e posições de sempre) e cria o release como rascunho, com o `.dmg` anexado. Se algo falhar, o push é cancelado e nada vai para o GitHub: corrija e dê o mesmo push de novo. Depois do push, em segundo plano, o release é publicado assim que a tag chega no GitHub, e aparece uma notificação. Os apps instalados (1.4 em diante) acham a versão nova em até um dia.
 
-Para só gerar o `.dmg`, sem publicar: `./scripts/release.sh dmg v1.5` (ou `HEAD`). O arquivo fica em `build/release/Disco.dmg`. Para pular o hook num push: `git push --no-verify`.
+Para só gerar o `.dmg`, sem publicar: `./scripts/release.sh dmg v1.6` (ou `HEAD`). O arquivo fica em `build/release/Disco.dmg`. Para pular o hook num push: `git push --no-verify`.
 
 ### Estrutura
 

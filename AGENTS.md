@@ -24,12 +24,11 @@ Commit e push na `main` **não chegam** em quem já tem o Disco instalado: os ap
 1. **Hook ativo:** `git config core.hooksPath` tem que responder `.githooks`. Se não responder, rode `git config core.hooksPath .githooks`. Sem o hook, o push da tag não gera o release.
 2. **Versão:** em `project.yml`, suba `MARKETING_VERSION` (maior que a do último release, comparada como número: 1.10 > 1.9) e `CURRENT_PROJECT_VERSION` (+1). Atualize a versão na linha de download do README.
 3. **Commit** com a versão e o README. Só entra no release o que está commitado: a tag é compilada numa cópia limpa, sem as mudanças não commitadas (inclusive as de outra sessão).
-4. **Tag anotada** `vX.Y`, igual ao `MARKETING_VERSION`, no commit da versão. A primeira linha é o título, no padrão dos anteriores (`Disco 1.4 — atualiza sozinho 🛸`). Depois vem `## Novidades`, com um item por mudança, em português e escrito para quem usa o app: essas notas aparecem no aviso de atualização e na aba Atualizações.
+4. **Tag anotada** `vX.Y`, igual ao `MARKETING_VERSION`, no commit da versão. A primeira linha é o título, no padrão dos anteriores (`Disco 1.5 — RAM e HD na barra 🛸`). Depois vem um item por mudança, em português e escrito para quem usa o app: essas notas aparecem no aviso de atualização e na aba Atualizações. **Não escreva `## Novidades` na tag:** o git apaga as linhas que começam com `#`, e o `release.sh` põe esse título sozinho.
    ```bash
-   git tag -a vX.Y -m "Disco X.Y — subtítulo 🛸" -m "## Novidades
-
-   - **Item:** o que mudou para quem usa."
+   git tag -a vX.Y -m "Disco X.Y — subtítulo 🛸" -m "- **Item:** o que mudou para quem usa."
    ```
+   Confira antes do push com `./scripts/release.sh notes vX.Y`: mostra o título e as notas exatamente como vão para o release.
 5. **Push:** `git push origin main vX.Y`. O hook confere a versão, compila, monta o `Disco.dmg`, cria o rascunho e, depois do push, publica. Se falhar, nada vai para o GitHub: corrija e repita o mesmo push.
 6. **Conferir:** `gh release list -R RogerBrusamarello/disco-macos` mostra `vX.Y` como **Latest** (não Draft), e `gh release view vX.Y -R RogerBrusamarello/disco-macos` lista o `Disco.dmg`. O log da publicação fica em `build/release/publish-vX.Y.log`. Os apps instalados (1.4 em diante) acham a versão em até um dia, ou na hora pelo **Procurar atualizações**.
 
