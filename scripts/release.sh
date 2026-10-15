@@ -33,6 +33,8 @@ build_dmg() {
     git worktree add --detach --quiet "$src" "$ref^{commit}"
 
     say "compilando $ref (versão $version)…"
+    # Sempre do zero: com o derived data de outra cópia, o Xcode acusa os entitlements como "modificados durante o build".
+    rm -rf "$OUT/derived"
     (cd "$src" && xcodegen generate >/dev/null)
     xcodebuild -project "$src/Disco.xcodeproj" -scheme Disco -configuration Release \
         -derivedDataPath "$OUT/derived" build > "$OUT/xcodebuild.log" 2>&1 \
