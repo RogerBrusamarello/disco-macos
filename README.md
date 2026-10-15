@@ -186,9 +186,28 @@ Requer Xcode 15+ e [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew inst
 
 ### Publicar uma versão
 
-1. Suba `MARKETING_VERSION` e `CURRENT_PROJECT_VERSION` em `project.yml`.
-2. Gere o `Disco.dmg` com essa versão.
-3. Crie o release no GitHub com a tag `vX.Y` e o `Disco.dmg` anexado. Os apps instalados (1.4 em diante) acham a versão nova em até um dia.
+O release sai do push da tag: o hook `.githooks/pre-push` gera o `Disco.dmg` e publica no GitHub. Ative o hook uma vez em cada clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+1. Suba `MARKETING_VERSION` e `CURRENT_PROJECT_VERSION` em `project.yml` e commite.
+2. Crie a tag. Com uma tag anotada, a primeira linha vira o título do release e o resto vira as notas, que também aparecem na aba Atualizações do app:
+   ```bash
+   git tag -a v1.5 -m "Disco 1.5 — título" -m "## Novidades
+
+   - **Item:** o que mudou."
+   ```
+   Com uma tag simples (`git tag v1.5`), o título fica "Disco 1.5" e as notas listam os commits desde a tag anterior.
+3. Dê push da tag:
+   ```bash
+   git push origin main v1.5
+   ```
+
+Antes do push, o hook confere se a tag bate com a versão do `project.yml`, compila a tag numa cópia limpa (sem as mudanças não commitadas), confere a assinatura, monta o `Disco.dmg` (mesma janela, fundo e posições de sempre) e cria o release como rascunho, com o `.dmg` anexado. Se algo falhar, o push é cancelado. Depois do push, em segundo plano, o release é publicado assim que a tag chega no GitHub, e aparece uma notificação. Os apps instalados (1.4 em diante) acham a versão nova em até um dia.
+
+Para só gerar o `.dmg`, sem publicar: `./scripts/release.sh dmg v1.5` (ou `HEAD`). O arquivo fica em `build/release/Disco.dmg`. Para pular o hook num push: `git push --no-verify`.
 
 ### Estrutura
 
@@ -199,7 +218,8 @@ Shared/     leituras de disco e RAM, paleta e botão-cápsula da marca, lista de
 brand/      identidade: ícone, ilustração, logo, slogan, símbolo da barra, fundo do .dmg e fontes
 AGENTS.md   regras para quem mexe no projeto, pessoa ou agente (o CLAUDE.md só importa ele)
 docs/       imagens deste README
-scripts/    install.sh (compila e instala) e screenshots.sh (prints deste README)
+scripts/    install.sh (compila e instala), release.sh (gera o .dmg e o release) e screenshots.sh (prints deste README)
+.githooks/  pre-push: push de uma tag vX.Y gera e publica o release
 project.yml definição do projeto (XcodeGen)
 ```
 

@@ -19,5 +19,6 @@ O que conferir a cada mudança:
 
 ## Outras regras
 
-- **Versão e release:** a atualização automática lê o último release do GitHub (tag `vX.Y` com o asset `Disco.dmg`). Não mude esse formato sem mudar `App/Updater.swift` e a seção Atualizações do README.
+- **Versão e release:** a atualização automática lê o último release do GitHub (tag `vX.Y` com o asset `Disco.dmg`). Não mude esse formato sem mudar `App/Updater.swift`, `scripts/release.sh` e as seções Atualizações e Publicar uma versão do README.
+- **Publicar:** o release sai só do push da tag (hook `.githooks/pre-push` → `scripts/release.sh`). Não suba `.dmg` à mão nem crie o release pelo site: o hook confere a versão e a assinatura antes.
 - **Idioma:** interface, README e mensagens de commit em português.

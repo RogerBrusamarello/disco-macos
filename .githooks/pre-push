@@ -1,0 +1,23 @@
+#!/bin/zsh
+# Push de uma tag vX.Y nova gera o Disco.dmg e o release no GitHub (scripts/release.sh):
+# antes do push, compila a tag, monta o .dmg e cria o rascunho do release (se falhar, o push é cancelado);
+# depois do push, em segundo plano, publica o release assim que a tag chega no GitHub.
+# Ativar no clone: git config core.hooksPath .githooks   ·   Pular uma vez: git push --no-verify
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+
+ZERO=0000000000000000000000000000000000000000
+tags=()
+while read -r local_ref local_sha remote_ref remote_sha; do
+    # só tag nova (não apaga, não reenvia) com cara de versão
+    if [[ $remote_ref == refs/tags/v<->.<->* && $local_sha != $ZERO && $remote_sha == $ZERO ]]; then
+        tags+=(${remote_ref#refs/tags/})
+    fi
+done
+
+for tag in $tags; do
+    ./scripts/release.sh draft "$tag" </dev/null
+    mkdir -p build/release
+    nohup ./scripts/release.sh publish "$tag" > "build/release/publish-$tag.log" 2>&1 </dev/null &!
+    print -P "%F{magenta}disco release%f $tag será publicado assim que o push terminar (log em build/release/publish-$tag.log)"
+done
