@@ -18,12 +18,14 @@ enum WindowTab: String, CaseIterable {
     case overview = "Visão geral"
     case clean = "Limpeza"
     case updates = "Atualizações"
+    case settings = "Ajustes"
 
     var systemImage: String {
         switch self {
         case .overview: "gauge.with.dots.needle.67percent"
         case .clean: "sparkles"
         case .updates: "arrow.down.circle"
+        case .settings: "gearshape"
         }
     }
 
@@ -32,6 +34,7 @@ enum WindowTab: String, CaseIterable {
         case .overview: "Disco, memória e apps que mais usam memória"
         case .clean: "Escolher e abduzir arquivos temporários"
         case .updates: "Versão instalada e versões novas no GitHub"
+        case .settings: "O que aparece ao lado do disco voador na barra de menus"
         }
     }
 }
@@ -151,7 +154,7 @@ struct MainView: View {
             header
             // Hierarquia: marca primeiro, depois a troca de aba.
             TabToggle(selection: $state.tab)
-                .frame(width: 400)
+                .frame(width: 500)
                 .frame(maxWidth: .infinity)
             Group {
                 switch state.tab {
@@ -161,6 +164,7 @@ struct MainView: View {
                         withAnimation(.snappy(duration: 0.25)) { state.tab = .overview }
                     }
                 case .updates: UpdatesView(updater: updater)
+                case .settings: SettingsView(settings: .shared)
                 }
             }
             .frame(height: tabHeight, alignment: .top)
@@ -354,16 +358,7 @@ struct UpdatesView: View {
                     InfoRow(title: "Última verificação", value: lastCheckLabel)
                 }
                 Divider().padding(.leading, 12)
-                HStack {
-                    Text("Procurar automaticamente todo dia").font(.system(size: 13))
-                    Spacer()
-                    Toggle("", isOn: $updater.checksDaily)
-                        .toggleStyle(.switch)
-                        .labelsHidden()
-                        .tint(.brandPurple)
-                }
-                .padding(.horizontal, 12)
-                .frame(height: 40)
+                ToggleRow(title: "Procurar automaticamente todo dia", isOn: $updater.checksDaily)
             }
             .groupBox()
 
@@ -453,6 +448,86 @@ struct UpdatesView: View {
         case .checking, .installing: "arrow.triangle.2.circlepath"
         case .idle, .upToDate: updater.latest == nil ? "clock" : "checkmark.circle.fill"
         }
+    }
+}
+
+// MARK: Ajustes
+
+/// O que aparece ao lado do disco voador na barra de menus, com uma prévia de como fica.
+struct SettingsView: View {
+    @ObservedObject var settings: MenuBarSettings
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Barra de menus").font(.system(size: 13, weight: .semibold))
+                Text("Porcentagens ao lado do disco voador. Atualizam a cada 5 segundos.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.leading, 4)
+
+            preview
+
+            VStack(spacing: 0) {
+                ToggleRow(
+                    title: "Memória (RAM)",
+                    subtitle: "Quanto da memória está em uso, igual ao cartão Memória",
+                    isOn: $settings.showMemory
+                )
+                Divider().padding(.leading, 12)
+                ToggleRow(
+                    title: "Disco (HD)",
+                    subtitle: "Quanto do Macintosh HD está ocupado, igual ao cartão Macintosh HD",
+                    isOn: $settings.showDisk
+                )
+            }
+            .groupBox()
+        }
+    }
+
+    /// O ícone desenhado pelo mesmo código da barra, ampliado sobre uma faixa no tom da barra.
+    private var preview: some View {
+        let image = menuBarImage(settings.blocks())
+        let scale: CGFloat = 2
+        return HStack {
+            Spacer()
+            Image(nsImage: image)
+                .renderingMode(.template)
+                .resizable()
+                .interpolation(.high)
+                .frame(width: image.size.width * scale, height: image.size.height * scale)
+                .foregroundStyle(.primary)
+            Spacer()
+        }
+        .frame(height: 96)
+        .groupBox()
+        .accessibilityLabel(image.accessibilityDescription ?? "Disco")
+    }
+}
+
+/// Linha com chave liga/desliga, no estilo dos Ajustes do Sistema.
+struct ToggleRow: View {
+    let title: String
+    var subtitle: String?
+    @Binding var isOn: Bool
+
+    var body: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title).font(.system(size: 13))
+                if let subtitle {
+                    Text(subtitle).font(.system(size: 11)).foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+            Toggle("", isOn: $isOn)
+                .toggleStyle(.switch)
+                .labelsHidden()
+                .tint(.brandPurple)
+        }
+        .padding(.horizontal, 12)
+        .frame(height: subtitle == nil ? 40 : 48)
     }
 }
 

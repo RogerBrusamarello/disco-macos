@@ -3,7 +3,7 @@ import ServiceManagement
 import WidgetKit
 
 /// Agente em segundo plano (sem Dock, com ícone na barra de menus): a cada minuto grava os apps que mais usam memória
-/// para o widget, procura atualizações no GitHub uma vez por dia e atende os links do widget: discowidget://clean (aba Limpeza), ://updates (aba Atualizações), ://activity e ://kill?app=<caminho>.
+/// para o widget, procura atualizações no GitHub uma vez por dia e atende os links do widget: discowidget://clean (aba Limpeza), ://updates (aba Atualizações), ://settings (aba Ajustes), ://activity e ://kill?app=<caminho>.
 @main @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var timer: Timer?
@@ -44,6 +44,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             switch url.host {
             case "clean": mainWindow?.show(tab: .clean)
             case "updates": mainWindow?.show(tab: .updates)
+            case "settings": mainWindow?.show(tab: .settings)
             case "activity":
                 NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Utilities/Activity Monitor.app"))
             case "kill":

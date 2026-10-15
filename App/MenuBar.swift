@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 
 /// Números ao vivo do popover; só atualiza (a cada 2s) enquanto ele está aberto.
@@ -82,6 +83,46 @@ final class MenuBarPanel: NSPanel {
     override var canBecomeKey: Bool { true }
 }
 
+/// O que aparece ao lado do disco voador na barra de menus (aba Ajustes); salvo e aplicado na hora.
+@MainActor
+final class MenuBarSettings: ObservableObject {
+    static let shared = MenuBarSettings()
+
+    @Published var showMemory = MenuBarSettings.saved("menuBarShowMemory", default: true) {
+        didSet { UserDefaults.standard.set(showMemory, forKey: "menuBarShowMemory") }
+    }
+    @Published var showDisk = MenuBarSettings.saved("menuBarShowDisk", default: false) {
+        didSet { UserDefaults.standard.set(showDisk, forKey: "menuBarShowDisk") }
+    }
+
+    private static func saved(_ key: String, default value: Bool) -> Bool {
+        UserDefaults.standard.object(forKey: key) == nil ? value : UserDefaults.standard.bool(forKey: key)
+    }
+
+    /// Blocos "RAM" / "HD" com a porcentagem atual, na ordem da barra.
+    func blocks() -> [MenuBarBlock] {
+        var blocks: [MenuBarBlock] = []
+        if showMemory {
+            let memory = Metrics.memory()
+            let fraction = memory.total > 0 ? min(Double(memory.used) / Double(memory.total), 1) : 0
+            blocks.append(MenuBarBlock(label: "RAM", fraction: fraction))
+        }
+        if showDisk {
+            let disk = Metrics.disk()
+            let fraction = disk.total > 0 ? Double(disk.total - disk.free) / Double(disk.total) : 0
+            blocks.append(MenuBarBlock(label: "HD", fraction: fraction))
+        }
+        return blocks
+    }
+}
+
+struct MenuBarBlock {
+    let label: String
+    let fraction: Double
+
+    var value: String { "\(Int((fraction * 100).rounded()))%" }
+}
+
 @MainActor
 final class StatusController: NSObject, NSWindowDelegate {
     private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -90,6 +131,7 @@ final class StatusController: NSObject, NSWindowDelegate {
     private let model = StatsModel()
     private var iconTimer: Timer?
     private var clickOutsideMonitor: Any?
+    private var settingsObserver: AnyCancellable?
 
     private var isShown: Bool { panel.isVisible }
 
@@ -144,8 +186,12 @@ final class StatusController: NSObject, NSWindowDelegate {
             button.action = #selector(toggle)
         }
         refreshIcon()
-        iconTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
+        iconTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.refreshIcon() }
+        }
+        // objectWillChange vem antes do valor mudar: redesenha no ciclo seguinte.
+        settingsObserver = MenuBarSettings.shared.objectWillChange.sink { [weak self] _ in
+            DispatchQueue.main.async { self?.refreshIcon() }
         }
     }
 
@@ -198,12 +244,12 @@ final class StatusController: NSObject, NSWindowDelegate {
     /// Clicou em outra janela do próprio app (ex.: a janela do Disco): fecha também.
     func windowDidResignKey(_ notification: Notification) { close() }
 
-    /// Só o disco voador em contorno; os números ficam na dica e no popover.
+    /// Disco voador em contorno e, se ligados na aba Ajustes, os blocos RAM e HD com a porcentagem.
     func refreshIcon() {
         guard let button = item.button else { return }
         let disk = Metrics.disk()
         let memory = Metrics.memory()
-        button.image = ufoOutline
+        button.image = menuBarImage(MenuBarSettings.shared.blocks())
         button.toolTip = "Memória: \(ramGB(memory.used)) de \(ramGB(memory.total)) GB · \(pressureLabel(memory.pressure))\n"
             + "Macintosh HD: \(gb(disk.free)) GB livres"
     }
@@ -251,6 +297,42 @@ let ufoOutline: NSImage = {
     image.accessibilityDescription = "Disco"
     return image
 }()
+
+/// Disco voador seguido dos blocos: rótulo pequeno em cima (RAM, HD) e a porcentagem embaixo, como os
+/// monitores de barra de menus. Imagem template: segue o claro/escuro da barra.
+func menuBarImage(_ blocks: [MenuBarBlock]) -> NSImage {
+    guard !blocks.isEmpty else { return ufoOutline }
+    let labelAttributes: [NSAttributedString.Key: Any] = [
+        .font: NSFont.systemFont(ofSize: 8, weight: .semibold), .foregroundColor: NSColor.black,
+    ]
+    let valueAttributes: [NSAttributedString.Key: Any] = [
+        .font: NSFont.monospacedDigitSystemFont(ofSize: 10, weight: .semibold), .foregroundColor: NSColor.black,
+    ]
+    // Largura fixa (a de "100%"): o ícone não pula quando o número muda.
+    let valueWidth = ("100%" as NSString).size(withAttributes: valueAttributes).width
+    let widths = blocks.map { max(valueWidth, ($0.label as NSString).size(withAttributes: labelAttributes).width) }
+    let ufo = ufoOutline.size
+    let ufoGap: CGFloat = 4, blockGap: CGFloat = 6, height: CGFloat = 22
+    let width = ufo.width + ufoGap + widths.reduce(0, +) + blockGap * CGFloat(blocks.count - 1)
+
+    let image = NSImage(size: NSSize(width: ceil(width), height: height), flipped: false) { _ in
+        ufoOutline.draw(in: NSRect(x: 0, y: (height - ufo.height) / 2, width: ufo.width, height: ufo.height))
+        var x = ufo.width + ufoGap
+        for (block, blockWidth) in zip(blocks, widths) {
+            let label = block.label as NSString
+            let value = block.value as NSString
+            let labelWidth = label.size(withAttributes: labelAttributes).width
+            let valueSize = value.size(withAttributes: valueAttributes)
+            label.draw(at: NSPoint(x: x + (blockWidth - labelWidth) / 2, y: 11.5), withAttributes: labelAttributes)
+            value.draw(at: NSPoint(x: x + (blockWidth - valueSize.width) / 2, y: -0.5), withAttributes: valueAttributes)
+            x += blockWidth + blockGap
+        }
+        return true
+    }
+    image.isTemplate = true
+    image.accessibilityDescription = "Disco: " + blocks.map { "\($0.label) \($0.value)" }.joined(separator: ", ")
+    return image
+}
 
 private func icon(_ path: String) -> NSImage {
     let image = NSWorkspace.shared.icon(forFile: path)

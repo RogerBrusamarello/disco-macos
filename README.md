@@ -28,7 +28,7 @@
 
 ## O que o disco faz
 
-- **Mostra o uso do disco e da memória ao vivo**, na barra de menus, nos widgets e na janela.
+- **Mostra o uso do disco e da memória ao vivo**, na barra de menus (com a % de RAM e de HD ao lado do disco voador, se você quiser), nos widgets e na janela.
 - **Lista os apps que mais usam memória**, somando os processos auxiliares de cada um (Chrome, apps em Electron…) e o que foi aberto no terminal dele (`node`, `gopls`… contam no VS Code ou no Terminal), com quanto de cada app está na swap e um **ⓧ para forçar o encerramento**.
 - **Abduz temporários:** você escolhe o que apagar entre caches, temporários do sistema, builds do Xcode, simuladores, pacotes e logs antigos, e vê o tamanho de cada item antes.
 - **Respeita o visual do macOS:** modo claro e escuro, fonte do sistema, vidro translúcido e cores flat na paleta da marca.
@@ -39,8 +39,8 @@
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/janela-visao-geral-escuro.png">
-    <img src="docs/readme/janela-visao-geral-claro.png" width="560" alt="Janela do disco na aba Visão geral: cartões de disco e memória e a lista dos apps que mais usam memória, com a parte de cada um na swap">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/aba-visao-geral-escuro.png">
+    <img src="docs/readme/aba-visao-geral-claro.png" width="560" alt="Janela do disco na aba Visão geral: cartões de disco e memória e a lista dos apps que mais usam memória, com a parte de cada um na swap">
   </picture>
 </p>
 
@@ -49,6 +49,7 @@ Abre pelo Spotlight (`⌘ Espaço` → *Disco*), pelo Finder, clicando num widge
 - **Visão geral:** cartões do **Macintosh HD** e da **Memória** e a lista rolável com até 10 apps. Embaixo da memória de cada app aparece a estimativa da parte dele na swap (a partir de 50 MB). Cada app tem um ⓧ sempre visível, com a dica *Forçar encerrar*, e uma confirmação antes de fechar; encerrar também fecha os processos abertos no terminal do app.
 - **Limpeza:** a lista do que pode ser abduzido (veja abaixo).
 - **Atualizações:** a versão instalada, a mais recente no GitHub e as novidades (veja abaixo).
+- **Ajustes:** o que aparece ao lado do disco voador na barra de menus (veja [Barra de menus](#barra-de-menus)).
 - **Tema:** o botão ☀︎/☾ no canto superior direito alterna a janela entre claro e escuro, e a escolha fica salva.
 - **Rodapé:** versão e build instaladas e o link **Procurar atualizações**, que vira o botão **Atualizar para X** quando sai uma versão nova.
 - Enquanto a janela está aberta, o disco aparece no Dock e no `⌘ Tab`. Ao fechar, volta a ficar só na barra de menus.
@@ -57,8 +58,8 @@ Abre pelo Spotlight (`⌘ Espaço` → *Disco*), pelo Finder, clicando num widge
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/janela-limpeza-escuro.png">
-    <img src="docs/readme/janela-limpeza-claro.png" width="560" alt="Aba Limpeza: itens com seleção e tamanho de cada um, a swap em uso com o link Ver apps e o botão Abduzir selecionados">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/aba-limpeza-escuro.png">
+    <img src="docs/readme/aba-limpeza-claro.png" width="560" alt="Aba Limpeza: itens com seleção e tamanho de cada um, a swap em uso com o link Ver apps e o botão Abduzir selecionados">
   </picture>
 </p>
 
@@ -85,8 +86,8 @@ A parte de cada app é uma estimativa: o macOS informa quanto de cada processo f
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/janela-atualizacoes-escuro.png">
-    <img src="docs/readme/janela-atualizacoes-claro.png" width="560" alt="Aba Atualizações: versão instalada, versão mais recente, última verificação, opção de procurar todo dia, novidades da versão e os botões Ver no GitHub e Procurar atualizações">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/aba-atualizacoes-escuro.png">
+    <img src="docs/readme/aba-atualizacoes-claro.png" width="560" alt="Aba Atualizações: versão instalada, versão mais recente, última verificação, opção de procurar todo dia, novidades da versão e os botões Ver no GitHub e Procurar atualizações">
   </picture>
 </p>
 
@@ -102,10 +103,24 @@ A atualização automática vale a partir da versão 1.4. Quem está na 1.3 ou a
 ## Barra de menus
 
 <p align="center">
-  <img src="docs/readme/barra-de-menus.png" width="440" alt="Disco voador em contorno na barra de menus, ao lado do Wi-Fi e da bateria">
+  <img src="docs/readme/barra-ram-hd.png" width="486" alt="Barra de menus nos temas escuro e claro: Wi-Fi, o disco voador em contorno, os blocos RAM 78% e HD 86% e a bateria">
 </p>
 
-Na barra de menus fica só o **disco voador em contorno**, no mesmo traço dos ícones do sistema. Deixando o mouse em cima, aparecem a memória e o espaço livre. Clicando, abre o painel:
+Na barra de menus fica o **disco voador em contorno**, no mesmo traço dos ícones do sistema. Ao lado dele podem aparecer dois blocos, com o nome em cima e a porcentagem embaixo:
+
+- **RAM:** quanto da memória está em uso (o mesmo número do cartão Memória). Vem ligado.
+- **HD:** quanto do Macintosh HD está ocupado (o mesmo número do cartão Macintosh HD). Vem desligado.
+
+Cada bloco liga e desliga na aba **Ajustes** da janela, que mostra uma prévia de como fica a barra. Os números atualizam a cada 5 segundos, e o bloco tem largura fixa, então o ícone não pula quando a porcentagem muda. Com os dois desligados, fica só o disco voador.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/aba-ajustes-escuro.png">
+    <img src="docs/readme/aba-ajustes-claro.png" width="560" alt="Aba Ajustes: prévia da barra com o disco voador, RAM 80% e HD 87%, e as chaves Memória (RAM) e Disco (HD)">
+  </picture>
+</p>
+
+Deixando o mouse em cima do ícone, aparecem a memória e o espaço livre. Clicando, abre o painel:
 
 <p align="center">
   <img src="docs/readme/painel-claro-escuro.png" width="640" alt="Painel da barra de menus nos temas escuro e claro: logo, módulo do disco, módulo da memória com os apps que mais usam memória, o botão Abrir Disco e o rodapé com a versão e Procurar atualizações">
@@ -170,7 +185,7 @@ Na barra de menus fica só o **disco voador em contorno**, no mesmo traço dos �
 - **Apps que mais usam memória:** o sandbox dos widgets **não deixa ver outros processos**. Por isso o app disco, em segundo plano, lê a memória de cada processo a cada minuto (`proc_pid_rusage` → `phys_footprint`, o mesmo valor do Monitor de Atividade). Ele soma os processos de cada app e grava a lista num App Group que os widgets conseguem ler. Entram só os apps das pastas de Aplicativos.
 - **Botões dos widgets:** os widgets também não podem apagar arquivos nem encerrar apps. Os botões abrem links `discowidget://…`, e o app faz a ação: abre a aba Limpeza, abre a janela ou pede confirmação para forçar o encerramento.
 - **Atualizações:** o app lê `api.github.com/repos/RogerBrusamarello/disco-macos/releases/latest`, compara a tag (`v1.4` → `1.4`) com a versão instalada e baixa o asset `Disco.dmg`. Antes de trocar o app, confere o `sha256` que o GitHub publica para o asset e a assinatura do código (mesmo identificador e mesmo Team ID). A troca é feita no lugar, e o app e o widget são registrados de novo, como no `install.sh`.
-- **Consumo:** o app fica parado quase o tempo todo. Faz uma leitura por minuto, que leva milissegundos, e só atualiza a cada 2 s enquanto o painel ou a janela estão abertos.
+- **Consumo:** o app fica parado quase o tempo todo. Faz uma leitura por minuto da memória de cada app, que leva milissegundos, lê o total de RAM e de disco a cada 5 s para o ícone da barra (só duas chamadas ao sistema) e só atualiza a cada 2 s enquanto o painel ou a janela estão abertos.
 
 ## Compilar
 
@@ -212,7 +227,7 @@ Para só gerar o `.dmg`, sem publicar: `./scripts/release.sh dmg v1.5` (ou `HEAD
 ### Estrutura
 
 ```
-App/        agente: barra de menus e painel, janela (Visão geral, Limpeza e Atualizações), limpeza, leitura de processos, atualização pelo GitHub
+App/        agente: barra de menus e painel, janela (Visão geral, Limpeza, Atualizações e Ajustes), limpeza, leitura de processos, atualização pelo GitHub
 Widget/     extensão WidgetKit: widgets Disco e Memória
 Shared/     leituras de disco e RAM, paleta e botão-cápsula da marca, lista de apps compartilhada
 brand/      identidade: ícone, ilustração, logo, slogan, símbolo da barra, fundo do .dmg e fontes

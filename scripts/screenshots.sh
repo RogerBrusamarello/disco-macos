@@ -1,6 +1,6 @@
 #!/bin/zsh
 # Tira os prints do README nos temas claro e escuro, em 2x, a partir do Disco instalado em /Applications:
-# janela (Visão geral, Limpeza, Atualizações) e o painel da barra de menus, mais o painel claro/escuro lado a lado.
+# janela (Visão geral, Limpeza, Atualizações, Ajustes) e o painel da barra de menus, mais o painel claro/escuro lado a lado.
 # Precisa de acesso de Acessibilidade para o Terminal (mover a janela e abrir o painel).
 # Uso: ./scripts/screenshots.sh [pasta de saída]   (padrão: build/screenshots)
 set -uo pipefail
@@ -36,6 +36,8 @@ for THEME in light dark; do
     front; screencapture -x -o -l $W "$OUT/limpeza-$THEME.png"
     open "discowidget://updates"; sleep 5
     front; screencapture -x -o -l $W "$OUT/atualizacoes-$THEME.png"
+    open "discowidget://settings"; sleep 2
+    front; screencapture -x -o -l $W "$OUT/ajustes-$THEME.png"
 
     # Com dois monitores o painel pode abrir no externo (1x): tenta de novo até sair em 2x (640 px).
     for _ in 1 2 3 4 5 6; do
