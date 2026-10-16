@@ -21,7 +21,7 @@
 
 <p align="center">
   <a href="https://github.com/RogerBrusamarello/disco-macos/releases/latest"><b>⬇︎ Baixar Disco.dmg</b></a>
-  &nbsp;·&nbsp; versão 1.5 &nbsp;·&nbsp; macOS 14 ou mais recente &nbsp;·&nbsp; Apple Silicon
+  &nbsp;·&nbsp; versão 1.6 &nbsp;·&nbsp; macOS 14 ou mais recente &nbsp;·&nbsp; Apple Silicon
 </p>
 
 ---
