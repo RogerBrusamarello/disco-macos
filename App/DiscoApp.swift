@@ -1,5 +1,4 @@
 import AppKit
-import ServiceManagement
 import WidgetKit
 
 /// Agente em segundo plano (sem Dock, com ícone na barra de menus): a cada minuto grava os apps que mais usam memória
@@ -19,7 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        try? SMAppService.mainApp.register()
+        LaunchAtLogin.shared.apply()
         registerBrandFonts()
         mainWindow = MainWindowController(
             onKill: { [weak self] path in self?.confirmAndKill(path) }

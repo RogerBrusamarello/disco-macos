@@ -34,7 +34,7 @@ enum WindowTab: String, CaseIterable {
         case .overview: "Disco, memória e apps que mais usam memória"
         case .clean: "Escolher e abduzir arquivos temporários"
         case .updates: "Versão instalada e versões novas no GitHub"
-        case .settings: "O que aparece ao lado do disco voador na barra de menus"
+        case .settings: "Barra de menus e abrir junto com o Mac"
         }
     }
 }
@@ -164,7 +164,7 @@ struct MainView: View {
                         withAnimation(.snappy(duration: 0.25)) { state.tab = .overview }
                     }
                 case .updates: UpdatesView(updater: updater)
-                case .settings: SettingsView(settings: .shared)
+                case .settings: SettingsView(settings: .shared, launch: .shared)
                 }
             }
             .frame(height: tabHeight, alignment: .top)
@@ -453,19 +453,62 @@ struct UpdatesView: View {
 
 // MARK: Ajustes
 
-/// O que aparece ao lado do disco voador na barra de menus, com uma prévia de como fica.
+/// O que aparece ao lado do disco voador na barra de menus, com uma prévia de como fica, e se o disco abre junto com o Mac.
 struct SettingsView: View {
     @ObservedObject var settings: MenuBarSettings
+    @ObservedObject var launch: LaunchAtLogin
 
     var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            menuBar
+            startup
+        }
+        // Volta dos Ajustes do Sistema com o item de início aprovado ou desligado.
+        .onAppear { launch.refresh() }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            launch.refresh()
+        }
+    }
+
+    private var startup: some View {
         VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Barra de menus").font(.system(size: 13, weight: .semibold))
-                Text("Porcentagens ao lado do disco voador. Atualizam a cada 5 segundos.")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
+            sectionHeader("Início", "O disco voador aparece na barra de menus quando você entra no Mac, sem abrir a janela.")
+
+            VStack(spacing: 0) {
+                ToggleRow(
+                    title: "Abrir junto com o Mac",
+                    subtitle: launch.needsApproval
+                        ? "Falta permitir em Ajustes do Sistema → Geral → Itens de Início"
+                        : "Também aparece em Ajustes do Sistema → Geral → Itens de Início",
+                    isOn: Binding(get: { launch.isOn }, set: { launch.set($0) })
+                )
+                if launch.needsApproval {
+                    Divider().padding(.leading, 12)
+                    HStack {
+                        Spacer()
+                        Button("Abrir Itens de Início") { launch.openLoginItems() }
+                    }
+                    .padding(.horizontal, 12)
+                    .frame(height: 36)
+                }
             }
-            .padding(.leading, 4)
+            .groupBox()
+        }
+    }
+
+    private func sectionHeader(_ title: String, _ subtitle: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title).font(.system(size: 13, weight: .semibold))
+            Text(subtitle)
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+        }
+        .padding(.leading, 4)
+    }
+
+    private var menuBar: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader("Barra de menus", "Porcentagens ao lado do disco voador. Atualizam a cada 5 segundos.")
 
             preview
 
@@ -483,6 +526,15 @@ struct SettingsView: View {
                 )
             }
             .groupBox()
+
+            Label {
+                Text("Para mudar o disco voador de lugar na barra, segure **⌘** e arraste o ícone para onde quiser. A posição fica salva.")
+            } icon: {
+                Image(systemName: "hand.point.up.left")
+            }
+            .font(.system(size: 11))
+            .foregroundStyle(.secondary)
+            .padding(.leading, 4)
         }
     }
 

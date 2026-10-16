@@ -33,7 +33,7 @@
 - **Abduz temporários:** você escolhe o que apagar entre caches, temporários do sistema, builds do Xcode, simuladores, pacotes e logs antigos, e vê o tamanho de cada item antes.
 - **Respeita o visual do macOS:** modo claro e escuro, fonte do sistema, vidro translúcido e cores flat na paleta da marca.
 - **Se atualiza sozinho:** procura versões novas no GitHub uma vez por dia e, com um clique, baixa, instala e reabre.
-- **Fica leve:** sem ícone no Dock, abre junto com o Mac e só atualiza com frequência quando você está olhando.
+- **Fica leve:** sem ícone no Dock, abre junto com o Mac (dá para desligar na aba Ajustes) e só atualiza com frequência quando você está olhando.
 
 ## Janela
 
@@ -49,7 +49,7 @@ Abre pelo Spotlight (`⌘ Espaço` → *Disco*), pelo Finder, clicando num widge
 - **Visão geral:** cartões do **Macintosh HD** e da **Memória** e a lista rolável com até 10 apps. Embaixo da memória de cada app aparece a estimativa da parte dele na swap (a partir de 50 MB). Cada app tem um ⓧ sempre visível, com a dica *Forçar encerrar*, e uma confirmação antes de fechar; encerrar também fecha os processos abertos no terminal do app.
 - **Limpeza:** a lista do que pode ser abduzido (veja abaixo).
 - **Atualizações:** a versão instalada, a mais recente no GitHub e as novidades (veja abaixo).
-- **Ajustes:** o que aparece ao lado do disco voador na barra de menus (veja [Barra de menus](#barra-de-menus)).
+- **Ajustes:** o que aparece ao lado do disco voador na barra de menus (veja [Barra de menus](#barra-de-menus)), a dica de como mudar o disco voador de lugar na barra e a chave **Abrir junto com o Mac** (veja [Abrir junto com o Mac](#abrir-junto-com-o-mac)).
 - **Tema:** o botão ☀︎/☾ no canto superior direito alterna a janela entre claro e escuro, e a escolha fica salva.
 - **Rodapé:** versão e build instaladas e o link **Procurar atualizações**, que vira o botão **Atualizar para X** quando sai uma versão nova.
 - Enquanto a janela está aberta, o disco aparece no Dock e no `⌘ Tab`. Ao fechar, volta a ficar só na barra de menus.
@@ -115,10 +115,12 @@ Cada bloco liga e desliga na aba **Ajustes** da janela, que mostra uma prévia d
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/aba-ajustes-escuro.png">
-    <img src="docs/readme/aba-ajustes-claro.png" width="560" alt="Aba Ajustes: prévia da barra com o disco voador, RAM 80% e HD 87%, e as chaves Memória (RAM) e Disco (HD)">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/aba-ajustes-inicio-escuro.png">
+    <img src="docs/readme/aba-ajustes-inicio-claro.png" width="560" alt="Aba Ajustes: prévia da barra com o disco voador, RAM 81% e HD 88%, as chaves Memória (RAM) e Disco (HD), a dica de segurar ⌘ e arrastar o ícone e a seção Início com a chave Abrir junto com o Mac ligada">
   </picture>
 </p>
+
+**Mudar de lugar na barra:** segure `⌘` e arraste o disco voador para onde quiser, por exemplo para perto do relógio. Vale para qualquer ícone da barra de menus, e o macOS guarda a posição. A aba **Ajustes** mostra essa dica embaixo das chaves.
 
 Deixando o mouse em cima do ícone, aparecem a memória e o espaço livre. Clicando, abre o painel:
 
@@ -132,6 +134,13 @@ Deixando o mouse em cima do ícone, aparecem a memória e o espaço livre. Clica
 - **Abrir Disco** abre a janela.
 - **Rodapé:** a versão instalada e **Procurar atualizações**, que vira **Atualizar para X** quando tem versão nova.
 - Os números atualizam a cada 2 segundos enquanto o painel está aberto. Um clique fora fecha o painel.
+
+## Abrir junto com o Mac
+
+Na aba **Ajustes**, a seção **Início** tem a chave **Abrir junto com o Mac**. Vem ligada: quando você entra no Mac, o disco voador aparece na barra de menus, sem abrir a janela. Desligando, o disco só abre quando você abrir pelo Spotlight, pelo Finder ou por um widget.
+
+- A escolha fica salva e vale também depois de atualizar o app.
+- A chave usa o mesmo registro dos **Ajustes do Sistema → Geral → Itens de Início**. Se o disco for desligado por lá, a chave avisa *Falta permitir em Ajustes do Sistema → Geral → Itens de Início* e mostra o botão **Abrir Itens de Início**. A aba confere de novo quando você volta para o disco.
 
 ## Widgets
 
@@ -160,13 +169,13 @@ Deixando o mouse em cima do ícone, aparecem a memória e o espaço livre. Clica
      ```bash
      xattr -dr com.apple.quarantine /Applications/Disco.app
      ```
-3. O disco voador aparece na barra de menus, e o disco passa a abrir junto com o Mac.
+3. O disco voador aparece na barra de menus, e o disco passa a abrir junto com o Mac (para desligar, veja [Abrir junto com o Mac](#abrir-junto-com-o-mac)). Para mudar o ícone de lugar na barra, segure `⌘` e arraste.
 4. **Widgets:** clique em **Editar Widgets…**, no fim da Central de Notificações, busque **Disco** ou **Memória** e arraste para a barra.
 
 > **Atualizando de uma versão anterior?** A partir da 1.4, o próprio disco se atualiza (veja [Atualizações](#atualizações)). Se os widgets continuarem com o visual antigo, remova e adicione de novo em **Editar Widgets…**.
 
 **Reabrir:** `⌘ Espaço` → *Disco*.
-**Fechar de vez:** Monitor de Atividade → Disco → ⓧ. Para não abrir mais no login: **Ajustes do Sistema → Geral → Itens de Início**.
+**Fechar de vez:** Monitor de Atividade → Disco → ⓧ. Para não abrir mais no login: desligue **Abrir junto com o Mac** na aba **Ajustes**.
 
 ## Como funciona
 
@@ -225,7 +234,7 @@ Para só gerar o `.dmg`, sem publicar: `./scripts/release.sh dmg v1.6` (ou `HEAD
 ### Estrutura
 
 ```
-App/        agente: barra de menus e painel, janela (Visão geral, Limpeza, Atualizações e Ajustes), limpeza, leitura de processos, atualização pelo GitHub
+App/        agente: barra de menus e painel, janela (Visão geral, Limpeza, Atualizações e Ajustes), limpeza, leitura de processos, atualização pelo GitHub, abrir junto com o Mac (LaunchAtLogin.swift)
 Widget/     extensão WidgetKit: widgets Disco e Memória
 Shared/     leituras de disco e RAM, paleta e botão-cápsula da marca, lista de apps compartilhada
 brand/      identidade: ícone, ilustração, logo, slogan, símbolo da barra, fundo do .dmg e fontes

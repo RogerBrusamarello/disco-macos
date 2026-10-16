@@ -23,6 +23,7 @@
 		AA159C9B04203954AD3BDFC6 /* DiscoWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9BF2A8CEBF491AC0E08CF2FB /* DiscoWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		AEA2508E7C3946C1603CF64F /* MainWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A5759F364218E251A3EA908 /* MainWindow.swift */; };
 		BF23443EBF3754CD2C3E3FC1 /* Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = F82ED13AE6FD952006D019F3 /* Brand.swift */; };
+		D17FF8D7E9EE5D574A246BC6 /* LaunchAtLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 939D525D5AAAA47E3906B080 /* LaunchAtLogin.swift */; };
 		ED0F2B0C8489F9E4C69132BD /* TopApps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6636640A469C60F2961B6E1B /* TopApps.swift */; };
 		FD216C1DB1ADE59D74B65FC4 /* DM-Sans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0E95D7077D3B4053BDB2BB58 /* DM-Sans-Regular.ttf */; };
 /* End PBXBuildFile section */
@@ -66,6 +67,7 @@
 		5EE192CFD040F3271EF56831 /* Widget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Widget.entitlements; sourceTree = "<group>"; };
 		6636640A469C60F2961B6E1B /* TopApps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopApps.swift; sourceTree = "<group>"; };
 		8AC605F4E372C0010624E0E0 /* DiscoWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoWidget.swift; sourceTree = "<group>"; };
+		939D525D5AAAA47E3906B080 /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
 		9BF2A8CEBF491AC0E08CF2FB /* DiscoWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DiscoWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		A784A75656C0073CBCEC810B /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		C644D4C3A070F0385FD0D87E /* DiscoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoApp.swift; sourceTree = "<group>"; };
@@ -104,6 +106,7 @@
 				08679912712CFC5E07DEC73A /* Cleaner.swift */,
 				C644D4C3A070F0385FD0D87E /* DiscoApp.swift */,
 				168B10E7A94B7E6508B91EC9 /* Info.plist */,
+				939D525D5AAAA47E3906B080 /* LaunchAtLogin.swift */,
 				3A5759F364218E251A3EA908 /* MainWindow.swift */,
 				00BDE4D3ACC30594C0A6D7DF /* MenuBar.swift */,
 				234F7280F804071E7C2FFE8C /* Sampler.swift */,
@@ -241,6 +244,7 @@
 				BF23443EBF3754CD2C3E3FC1 /* Brand.swift in Sources */,
 				0772408CA7448E2EE9B7BD42 /* Cleaner.swift in Sources */,
 				1ED6EE6DFD0C59FBF74B4218 /* DiscoApp.swift in Sources */,
+				D17FF8D7E9EE5D574A246BC6 /* LaunchAtLogin.swift in Sources */,
 				AEA2508E7C3946C1603CF64F /* MainWindow.swift in Sources */,
 				3491ABFC72E168CA175FA310 /* MenuBar.swift in Sources */,
 				8C12241DBF5BF5B5374086E0 /* Metrics.swift in Sources */,
