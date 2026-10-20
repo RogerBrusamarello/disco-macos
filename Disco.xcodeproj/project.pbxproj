@@ -25,6 +25,7 @@
 		BF23443EBF3754CD2C3E3FC1 /* Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = F82ED13AE6FD952006D019F3 /* Brand.swift */; };
 		D17FF8D7E9EE5D574A246BC6 /* LaunchAtLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 939D525D5AAAA47E3906B080 /* LaunchAtLogin.swift */; };
 		ED0F2B0C8489F9E4C69132BD /* TopApps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6636640A469C60F2961B6E1B /* TopApps.swift */; };
+		FB6F39FD281D07D5E0B6BAC0 /* Space.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB547C71AE51A7C4A374573 /* Space.swift */; };
 		FD216C1DB1ADE59D74B65FC4 /* DM-Sans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0E95D7077D3B4053BDB2BB58 /* DM-Sans-Regular.ttf */; };
 /* End PBXBuildFile section */
 
@@ -62,6 +63,7 @@
 		218C242E2F7E90721F544DE0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		234F7280F804071E7C2FFE8C /* Sampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sampler.swift; sourceTree = "<group>"; };
 		3A5759F364218E251A3EA908 /* MainWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindow.swift; sourceTree = "<group>"; };
+		3FB547C71AE51A7C4A374573 /* Space.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Space.swift; sourceTree = "<group>"; };
 		43EAE6D3D958C174E1E82545 /* Metrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Metrics.swift; sourceTree = "<group>"; };
 		5E1E5C719673A787AAD3D3F9 /* MemoryWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryWidget.swift; sourceTree = "<group>"; };
 		5EE192CFD040F3271EF56831 /* Widget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Widget.entitlements; sourceTree = "<group>"; };
@@ -110,6 +112,7 @@
 				3A5759F364218E251A3EA908 /* MainWindow.swift */,
 				00BDE4D3ACC30594C0A6D7DF /* MenuBar.swift */,
 				234F7280F804071E7C2FFE8C /* Sampler.swift */,
+				3FB547C71AE51A7C4A374573 /* Space.swift */,
 				F1F55B246D247208E144B3E6 /* Updater.swift */,
 				8F51E5985D3F20C16BA957F5 /* Fonts */,
 			);
@@ -249,6 +252,7 @@
 				3491ABFC72E168CA175FA310 /* MenuBar.swift in Sources */,
 				8C12241DBF5BF5B5374086E0 /* Metrics.swift in Sources */,
 				31E2E3532D94B010017DD75D /* Sampler.swift in Sources */,
+				FB6F39FD281D07D5E0B6BAC0 /* Space.swift in Sources */,
 				884DF12251EA6E026900935A /* TopApps.swift in Sources */,
 				89FCDF389A7FA50973EA5206 /* Updater.swift in Sources */,
 			);

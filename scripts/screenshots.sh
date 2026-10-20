@@ -1,6 +1,7 @@
 #!/bin/zsh
 # Tira os prints do README nos temas claro e escuro, em 2x, a partir do Disco instalado em /Applications:
-# janela (Visão geral, Limpeza, Atualizações, Ajustes) e o painel da barra de menus, mais o painel claro/escuro lado a lado.
+# janela (Visão geral com as listas de memória e de disco, o detalhe do maior item, Limpeza, Atualizações, Ajustes) e o painel da barra de menus,
+# mais o painel claro/escuro lado a lado.
 # Precisa de acesso de Acessibilidade para o Terminal (mover a janela e abrir o painel).
 # Uso: ./scripts/screenshots.sh [pasta de saída]   (padrão: build/screenshots)
 set -uo pipefail
@@ -18,6 +19,18 @@ wins() {
         }
         r.join("\n")'
 }
+# Popover aberto pela janela: "x y largura altura", em pontos da tela.
+popover() {
+    osascript -l JavaScript -e 'ObjC.import("CoreGraphics");
+        var l = ObjC.castRefToObject($.CGWindowListCopyWindowInfo($.kCGWindowListOptionOnScreenOnly, 0)), r = "";
+        for (var i = 0; i < l.count; i++) {
+            var w = l.objectAtIndex(i), b = ObjC.deepUnwrap(w.objectForKey("kCGWindowBounds"));
+            if (ObjC.unwrap(w.objectForKey("kCGWindowOwnerName")) == "Disco" && ObjC.unwrap(w.objectForKey("kCGWindowLayer")) == 0 && b.Width != 560)
+                r = [b.X, b.Y, b.Width, b.Height].join(" ");
+        }
+        r'
+}
+click() { osascript -e "tell application \"System Events\" to tell process \"Disco\" to click at {$1, $2}" >/dev/null; }
 front() { osascript -e 'tell application "System Events" to set frontmost of process "Disco" to true' >/dev/null; sleep 0.7; }
 AX='tell application "System Events" to tell process "Disco" to perform action "AXPress" of menu bar item 1 of menu bar 1'
 
@@ -32,6 +45,26 @@ for THEME in light dark; do
     sleep 1
     W=$(wins | awk '$2==0 { print $1; exit }')
     front; screencapture -x -o -l $W "$OUT/visao-geral-$THEME.png"
+    # Lista do disco: a medição leva até ~30 s.
+    open "discowidget://space"; sleep 30
+    front; screencapture -x -o -l $W "$OUT/visao-geral-disco-$THEME.png"
+    # Detalhe do maior item, com a maior parte aberta. Só clica em nomes (a linha e a parte), nunca nas lixeiras;
+    # se algo sair do lugar e abrir uma confirmação, o Esc no fim cancela.
+    click 450 461; sleep 1.5
+    read PX PY PW PH <<< "$(popover)"
+    if [ -n "${PX:-}" ]; then
+        click $((PX + 90)) $((PY + 69)); sleep 1
+        read PX PY PW PH <<< "$(popover)"
+        screencapture -x -o -l $W "$OUT/detalhe-tela-$THEME.png"
+        python3 - "$OUT/detalhe-tela-$THEME.png" "$OUT/detalhe-$THEME.png" $(((PX - 300) * 2)) $(((PY - 120) * 2)) $((PW * 2)) $((PH * 2)) <<'PY' || echo "Sem Pillow: o detalhe não foi recortado."
+import sys
+from PIL import Image
+src, dst, x, y, w, h = sys.argv[1], sys.argv[2], *map(int, sys.argv[3:])
+Image.open(src).crop((x, y, x + w, y + h)).save(dst, optimize=True)
+PY
+        rm -f "$OUT/detalhe-tela-$THEME.png"
+    fi
+    osascript -e 'tell application "System Events" to key code 53'; sleep 0.5
     open "discowidget://clean"; sleep 6
     front; screencapture -x -o -l $W "$OUT/limpeza-$THEME.png"
     open "discowidget://updates"; sleep 5

@@ -30,6 +30,7 @@
 
 - **Mostra o uso do disco e da memória ao vivo**, na barra de menus (com a % de RAM e de HD ao lado do disco voador, se você quiser), nos widgets e na janela.
 - **Lista os apps que mais usam memória**, somando os processos auxiliares de cada um (Chrome, apps em Electron…) e o que foi aberto no terminal dele (`node`, `gopls`… contam no VS Code ou no Terminal), com quanto de cada app está na swap e um **ⓧ para forçar o encerramento**.
+- **Mostra o que mais ocupa o disco:** qualquer app e as ferramentas de desenvolvimento (Docker, simuladores do iOS, Android Studio e Gradle, Homebrew…), com o que tem dentro de cada um. O que dá para apagar com segurança vai para a Lixeira com um clique; o que o app precisa fica com a lixeira riscada e o motivo.
 - **Abduz temporários:** você escolhe o que apagar entre caches, temporários do sistema, builds do Xcode, simuladores, pacotes e logs antigos, e vê o tamanho de cada item antes.
 - **Respeita o visual do macOS:** modo claro e escuro, fonte do sistema, vidro translúcido e cores flat na paleta da marca.
 - **Se atualiza sozinho:** procura versões novas no GitHub uma vez por dia e, com um clique, baixa, instala e reabre.
@@ -39,20 +40,90 @@
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/aba-visao-geral-escuro.png">
-    <img src="docs/readme/aba-visao-geral-claro.png" width="560" alt="Janela do disco na aba Visão geral: cartões de disco e memória e a lista dos apps que mais usam memória, com a parte de cada um na swap">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/aba-visao-geral-memoria-escuro.png">
+    <img src="docs/readme/aba-visao-geral-memoria-claro.png" width="560" alt="Janela do disco na aba Visão geral: cartões de disco e memória, a chave Memória e Disco e a lista dos apps que mais usam memória, com a parte de cada um na swap">
   </picture>
 </p>
 
 Abre pelo Spotlight (`⌘ Espaço` → *Disco*), pelo Finder, clicando num widget ou em **Abrir Disco** na barra de menus.
 
-- **Visão geral:** cartões do **Macintosh HD** e da **Memória** e a lista rolável com até 10 apps. Embaixo da memória de cada app aparece a estimativa da parte dele na swap (a partir de 50 MB). Cada app tem um ⓧ sempre visível, com a dica *Forçar encerrar*, e uma confirmação antes de fechar; encerrar também fecha os processos abertos no terminal do app.
+- **Visão geral:** cartões do **Macintosh HD** e da **Memória** e uma lista rolável que alterna, pela chave **Memória | Disco** ao lado do título, entre **Mais usam memória** (até 10 apps) e **Mais ocupam espaço** (veja [Mais ocupam espaço](#mais-ocupam-espaço)). Embaixo da memória de cada app aparece a estimativa da parte dele na swap (a partir de 50 MB). Cada app tem um ⓧ sempre visível, com a dica *Forçar encerrar*, e uma confirmação antes de fechar; encerrar também fecha os processos abertos no terminal do app.
 - **Limpeza:** a lista do que pode ser abduzido (veja abaixo).
 - **Atualizações:** a versão instalada, a mais recente no GitHub e as novidades (veja abaixo).
 - **Ajustes:** o que aparece ao lado do disco voador na barra de menus (veja [Barra de menus](#barra-de-menus)), a dica de como mudar o disco voador de lugar na barra e a chave **Abrir junto com o Mac** (veja [Abrir junto com o Mac](#abrir-junto-com-o-mac)).
 - **Tema:** o botão ☀︎/☾ no canto superior direito alterna a janela entre claro e escuro, e a escolha fica salva.
 - **Rodapé:** versão e build instaladas e o link **Procurar atualizações**, que vira o botão **Atualizar para X** quando sai uma versão nova.
 - Enquanto a janela está aberta, o disco aparece no Dock e no `⌘ Tab`. Ao fechar, volta a ficar só na barra de menus.
+
+## Mais ocupam espaço
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/aba-visao-geral-disco-escuro.png">
+    <img src="docs/readme/aba-visao-geral-disco-claro.png" width="560" alt="Aba Visão geral com a lista Mais ocupam espaço: Android Studio, Simuladores do iOS, Claude, Docker, Google Chrome e Visual Studio Code, cada um com o total e as maiores coisas de dentro">
+  </picture>
+</p>
+
+Na Visão geral, a chave **Disco** troca a lista de memória pelo que mais ocupa o Macintosh HD: até 12 apps e ferramentas, do maior para o menor, a partir de 100 MB. Cada linha mostra o total, uma barra e as três maiores coisas de dentro (por exemplo, *Emulador Medium_Phone 6,2 GB · App 3,2 GB · NDK 28.2 3 GB*).
+
+### Detalhe: o que tem dentro e o que dá para apagar
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/detalhe-espaco-escuro.png">
+    <img src="docs/readme/detalhe-espaco-claro.png" width="406" alt="Detalhe do Android Studio com o Android SDK aberto: cada NDK, system image, código-fonte, build-tools e plataforma com o tamanho, a lupa e a lixeira; emulator e cmdline-tools com a lixeira riscada">
+  </picture>
+</p>
+
+Clicando numa linha, abre o detalhe com as partes do item (o app, os dados, o cache, o SDK…). Clicando no nome de uma parte, ela se abre no que tem dentro, do maior para o menor: cada versão do NDK, cada emulador, cada simulador, cada pasta de dados de um app. Toda linha tem:
+
+- **Lupa:** mostra a pasta no Finder.
+- **Lixeira ativa:** dá para apagar. A dica (passando o mouse) diz o que acontece. Antes de apagar aparece uma confirmação com o tamanho.
+- **Lixeira riscada:** não dá para apagar pelo disco, e a dica diz por quê: é importante para o app funcionar, faz parte do macOS, não há permissão, ou a ferramenta tem o próprio jeito de apagar (`brew uninstall`, `ollama rm`, `docker system prune`…).
+
+O que é apagado pela lixeira **vai para a Lixeira do Mac**: dá para recuperar, e o espaço volta quando você esvazia a Lixeira. O resultado aparece ao lado do título da lista (*✓ X na Lixeira*). Simuladores e runtimes do iOS são a exceção: saem de vez pelo `xcrun simctl`, que é o jeito que o Xcode aceita. Se o app do item estiver aberto, o disco pede para fechar antes.
+
+A mesma regra vale para qualquer app de Aplicativos (Word, Excel, Photoshop, Chrome…):
+
+| Parte | Lixeira |
+|---|---|
+| **App** | ativa: move o app para a Lixeira, o que desinstala. Riscada nos apps do macOS (Safari, por exemplo) |
+| **Dados** (`~/Library/Application Support/<app>`) | dentro dela, ativa só no que é cache, logs ou relatórios de falha, que o app recria. O resto (configurações, contas, arquivos, modelos) fica riscado: quem limpa é o próprio app |
+| **Cache** (`~/Library/Caches/<app>`) | ativa: o app recria sozinho |
+
+Nas ferramentas de desenvolvimento, o detalhe separa o que dá para apagar com segurança:
+
+| Item | Ativa | Riscada |
+|---|---|---|
+| **Simuladores do iOS** | cada runtime (iOS 26.2…) e cada simulador (iPhone 17 Pro Max…), pelo `simctl` | runtimes que o macOS não deixa apagar, caches do sistema |
+| **Xcode** | cada versão em DeviceSupport, cada data em Archives, cada projeto em DerivedData | — |
+| **Android Studio** | cada NDK, system image, plataforma, build-tools, código-fonte e CMake; cada emulador (com o `.ini` dele); cada versão no cache do Gradle; configurações de versões antigas do Android Studio | `emulator`, `platform-tools` e o que o Android Studio precisa para rodar; configurações da versão atual |
+| **Node, Rust, Python** | cada versão do nvm, cada toolchain do rustup, cada versão do pyenv, os caches de pacotes | programas instalados (`bin`), conda |
+| **Docker, Homebrew, Go, Ollama, Backups do iPhone** | downloads do Homebrew e cache de build do Go | disco virtual do Docker, pacotes do Homebrew, módulos do Go, modelos do Ollama e backups, que têm comando ou tela própria |
+
+### Liberar com um clique
+
+Em dois itens, o detalhe também tem um botão que apaga tudo de uma vez, **de vez** (sem passar pela Lixeira), depois de uma confirmação. O resultado aparece ao lado do título da lista (*✓ X liberados*, o tamanho medido antes de apagar).
+
+| Botão | O que faz | Efeito colateral |
+|---|---|---|
+| **Apagar runtimes antigos** (Simuladores do iOS) | apaga os runtimes dos simuladores, menos a versão mais nova de cada plataforma (iOS, watchOS, tvOS, visionOS), com `xcrun simctl runtime delete`, e depois os simuladores que ficaram sem runtime. Só aparece quando há versões antigas | Para testar numa versão apagada, baixe de novo no Xcode, em **Settings → Components** |
+| **Apagar o cache do Gradle** (Android Studio) | encerra os daemons do Gradle e apaga o conteúdo de `~/.gradle/caches`. Com o Android Studio aberto, pede para fechar antes | O próximo build de cada projeto baixa as dependências de novo e demora mais |
+
+| Linha | O que soma |
+|---|---|
+| **Simuladores do iOS** | cada runtime do iOS (watchOS, tvOS, visionOS) instalado, os simuladores e os caches |
+| **Xcode** | o app, DeviceSupport, Archives e DerivedData |
+| **Android Studio** | o app, o Android SDK, os emuladores, o cache do Gradle (`~/.gradle/caches`), o resto do Gradle e os dados do app. Sem o app, a linha se chama *Android e Gradle* |
+| **Docker** | o app, o disco virtual (só o que está gravado nele) e os dados. Com o Docker aberto, o detalhe diz quanto o `docker system df` calcula que dá para liberar |
+| **Homebrew, Node.js, Rust, Go, Python** | pacotes, versões instaladas e caches de cada um |
+| **Ollama, LM Studio** | o app e os modelos baixados |
+| **Caches de ferramentas** | as pastas de `~/.cache` |
+| **Backups do iPhone** | `~/Library/Application Support/MobileSync/Backup` |
+| **Outros apps** | cada app de Aplicativos, os dados dele em `~/Library/Application Support` e o cache, com cada pasta de dentro separada |
+
+- A medição roda em segundo plano e leva de segundos a um minuto. Ela acontece na primeira vez que a lista aparece e de novo se já faz mais de 30 minutos. O ↻ ao lado do título mede na hora, e passando o mouse em cima aparece quando foi a última medição.
+- Para não pedir permissões, o disco não entra em Mesa, Documentos, Downloads, Lixeira, nem nas pastas de dados de outros apps em `~/Library/Containers` (do Docker, lê só o arquivo do disco virtual). Os dados dos apps da Apple também ficam de fora: conta só o tamanho do app.
 
 ## Abduzir temporários
 
@@ -194,6 +265,7 @@ Na aba **Ajustes**, a seção **Início** tem a chave **Abrir junto com o Mac**.
 - **Apps que mais usam memória:** o sandbox dos widgets **não deixa ver outros processos**. Por isso o app disco, em segundo plano, lê a memória de cada processo a cada minuto (`proc_pid_rusage` → `phys_footprint`, o mesmo valor do Monitor de Atividade). Ele soma os processos de cada app e grava a lista num App Group que os widgets conseguem ler. Entram só os apps das pastas de Aplicativos.
 - **Botões dos widgets:** os widgets também não podem apagar arquivos nem encerrar apps. Os botões abrem links `discowidget://…`, e o app faz a ação: abre a aba Limpeza, abre a janela ou pede confirmação para forçar o encerramento.
 - **Atualizações:** o app lê `api.github.com/repos/RogerBrusamarello/disco-macos/releases/latest`, compara a tag (`v1.4` → `1.4`) com a versão instalada e baixa o asset `Disco.dmg`. Antes de trocar o app, confere o `sha256` que o GitHub publica para o asset e a assinatura do código (mesmo identificador e mesmo Team ID). A troca é feita no lugar, e o app e o widget são registrados de novo, como no `install.sh`.
+- **Mais ocupam espaço:** o app soma o espaço que cada arquivo ocupa de fato (`totalFileAllocatedSize`, que conta só o que está gravado nos arquivos esparsos, como o disco do Docker), em paralelo, e pega o tamanho dos runtimes dos simuladores no `xcrun simctl runtime list`. A pasta de dados de cada app é achada pelo nome do app, pelo bundle id ou pelo `CFBundleName` (o VS Code guarda em `Code`). A lixeira de cada item usa `NSWorkspace.recycle`, o mesmo do Finder (pede a senha de administrador quando o app pertence ao sistema, como os instalados pela App Store), e os simuladores saem com `xcrun simctl delete`.
 - **Consumo:** o app fica parado quase o tempo todo. Faz uma leitura por minuto da memória de cada app, que leva milissegundos, lê o total de RAM e de disco a cada 5 s para o ícone da barra (só duas chamadas ao sistema) e só atualiza a cada 2 s enquanto o painel ou a janela estão abertos.
 
 ## Compilar
@@ -234,7 +306,7 @@ Para só gerar o `.dmg`, sem publicar: `./scripts/release.sh dmg v1.6` (ou `HEAD
 ### Estrutura
 
 ```
-App/        agente: barra de menus e painel, janela (Visão geral, Limpeza, Atualizações e Ajustes), limpeza, leitura de processos, atualização pelo GitHub, abrir junto com o Mac (LaunchAtLogin.swift)
+App/        agente: barra de menus e painel, janela (Visão geral, Limpeza, Atualizações e Ajustes), limpeza, o que mais ocupa o disco (Space.swift), leitura de processos, atualização pelo GitHub, abrir junto com o Mac (LaunchAtLogin.swift)
 Widget/     extensão WidgetKit: widgets Disco e Memória
 Shared/     leituras de disco e RAM, paleta e botão-cápsula da marca, lista de apps compartilhada
 brand/      identidade: ícone, ilustração, logo, slogan, símbolo da barra, fundo do .dmg e fontes

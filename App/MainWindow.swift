@@ -31,7 +31,7 @@ enum WindowTab: String, CaseIterable {
 
     var help: String {
         switch self {
-        case .overview: "Disco, memória e apps que mais usam memória"
+        case .overview: "Disco, memória e o que mais usa memória e espaço"
         case .clean: "Escolher e abduzir arquivos temporários"
         case .updates: "Versão instalada e versões novas no GitHub"
         case .settings: "Barra de menus e abrir junto com o Mac"
@@ -43,9 +43,19 @@ enum WindowTheme: String {
     case light, dark
 }
 
+/// Lista da Visão geral: apps que mais usam memória ou o que mais ocupa o disco.
+enum OverviewList: String, CaseIterable {
+    case memory = "Memória"
+    case disk = "Disco"
+
+    var systemImage: String { self == .memory ? "memorychip" : "internaldrive" }
+    var title: String { self == .memory ? "Mais usam memória" : "Mais ocupam espaço" }
+}
+
 @MainActor
 final class WindowState: ObservableObject {
     @Published var tab: WindowTab = .overview
+    @Published var list: OverviewList = .memory
     /// nil = segue o tema do Mac; depois do primeiro clique no botão, fica salvo.
     @Published var theme: WindowTheme? = UserDefaults.standard.string(forKey: "windowTheme").flatMap(WindowTheme.init) {
         didSet { UserDefaults.standard.set(theme?.rawValue, forKey: "windowTheme") }
@@ -59,6 +69,7 @@ final class MainWindowController: NSObject, NSWindowDelegate {
     private var window: NSWindow?
     private let model = StatsModel()
     private let cleanModel = CleanModel()
+    private let spaceModel = SpaceModel()
     private let state = WindowState()
     private let onKill: (String) -> Void
     private var themeObserver: AnyCancellable?
@@ -70,11 +81,12 @@ final class MainWindowController: NSObject, NSWindowDelegate {
         model.appLimit = 10
     }
 
-    func show(tab: WindowTab? = nil) {
+    func show(tab: WindowTab? = nil, list: OverviewList? = nil) {
         if window == nil {
             let root = MainView(
                 model: model,
                 cleanModel: cleanModel,
+                spaceModel: spaceModel,
                 state: state,
                 onKill: { [weak self] path in self?.onKill(path) },
                 onActivity: {
@@ -117,7 +129,9 @@ final class MainWindowController: NSObject, NSWindowDelegate {
             }
         }
         if let tab { state.tab = tab }
+        if let list { state.list = list }
         if state.tab == .clean { cleanModel.scan() }
+        if state.tab == .overview, state.list == .disk { spaceModel.refreshIfStale() }
         model.start()
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
@@ -144,6 +158,7 @@ private let tabHeight: CGFloat = 468
 struct MainView: View {
     @ObservedObject var model: StatsModel
     @ObservedObject var cleanModel: CleanModel
+    @ObservedObject var spaceModel: SpaceModel
     @ObservedObject var state: WindowState
     @ObservedObject var updater = Updater.shared
     let onKill: (String) -> Void
@@ -183,6 +198,10 @@ struct MainView: View {
         .ignoresSafeArea(.container, edges: .top)
         .onChange(of: state.tab) { _, tab in
             if tab == .clean { cleanModel.scan() }
+            if tab == .overview, state.list == .disk { spaceModel.refreshIfStale() }
+        }
+        .onChange(of: state.list) { _, list in
+            if list == .disk { spaceModel.refreshIfStale() }
         }
     }
 
@@ -231,16 +250,18 @@ struct MainView: View {
                 }
             }
             VStack(alignment: .leading, spacing: 6) {
-                Text("Mais usam memória")
-                    .font(.system(size: 13, weight: .semibold))
-                    .padding(.leading, 4)
+                HStack(spacing: 8) {
+                    Text(state.list.title)
+                        .font(.system(size: 13, weight: .semibold))
+                    if state.list == .disk { spaceStatus }
+                    Spacer(minLength: 8)
+                    ListToggle(selection: $state.list).fixedSize()
+                }
+                .padding(.leading, 4)
                 ScrollView {
-                    VStack(spacing: 0) {
-                        let maxBytes = max(model.apps.first?.bytes ?? 1, 1)
-                        ForEach(Array(model.apps.enumerated()), id: \.element.path) { index, app in
-                            if index > 0 { Divider().padding(.leading, 44) }
-                            AppRow(app: app, share: Double(app.bytes) / Double(maxBytes)) { onKill(app.path) }
-                        }
+                    switch state.list {
+                    case .memory: memoryList
+                    case .disk: diskList
                     }
                 }
                 .frame(maxHeight: .infinity)
@@ -253,9 +274,67 @@ struct MainView: View {
                     Spacer()
                     UpdateStatus(updater: updater)
                 }
-                .padding(.horizontal, 4)  // mesma margem de "Mais usam memória"
+                .padding(.horizontal, 4)  // mesma margem do título da lista
                 .padding(.top, 2)
             }
+        }
+    }
+}
+
+extension MainView {
+    private var memoryList: some View {
+        VStack(spacing: 0) {
+            let maxBytes = max(model.apps.first?.bytes ?? 1, 1)
+            ForEach(Array(model.apps.enumerated()), id: \.element.path) { index, app in
+                if index > 0 { Divider().padding(.leading, 44) }
+                AppRow(app: app, share: Double(app.bytes) / Double(maxBytes)) { onKill(app.path) }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var diskList: some View {
+        if spaceModel.groups.isEmpty {
+            VStack(spacing: 8) {
+                ProgressView().controlSize(.small)
+                Text("Medindo o espaço de cada app…")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.top, 90)
+        } else {
+            VStack(spacing: 0) {
+                let maxBytes = max(spaceModel.groups.first?.bytes ?? 1, 1)
+                ForEach(Array(spaceModel.groups.prefix(12).enumerated()), id: \.element.id) { index, group in
+                    if index > 0 { Divider().padding(.leading, 44) }
+                    SpaceRow(model: spaceModel, group: group, share: Double(group.bytes) / Double(maxBytes))
+                }
+            }
+        }
+    }
+
+    /// Quando foi medido e o botão para medir de novo (a medição leva de segundos a um minuto).
+    @ViewBuilder
+    private var spaceStatus: some View {
+        if let result = spaceModel.result {
+            Text(result)
+                .font(.system(size: 11))
+                .foregroundStyle(.green)
+                .monospacedDigit()
+                .lineLimit(1)
+                .help(spaceModel.resultInTrash ? "Esvazie a Lixeira para o espaço voltar ao disco." : "Estimativa: o tamanho medido antes de apagar")
+        }
+        if spaceModel.running != nil || spaceModel.scanning {
+            ProgressView().controlSize(.mini)
+        } else if let date = spaceModel.date {
+            Button { spaceModel.scan() } label: {
+                Image(systemName: "arrow.clockwise")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help("Medido \(date.formatted(Date.RelativeFormatStyle(presentation: .named, locale: Locale(identifier: "pt_BR")))). Clique para medir de novo.")
         }
     }
 }
@@ -329,6 +408,44 @@ struct TabToggle: View {
             }
         }
         .padding(3)
+        .background(.fill.secondary, in: Capsule())
+    }
+}
+
+/// Troca a lista da Visão geral entre memória e disco, no padrão das abas, em tamanho menor.
+struct ListToggle: View {
+    @Binding var selection: OverviewList
+    @Namespace private var namespace
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(OverviewList.allCases, id: \.self) { list in
+                let selected = list == selection
+                Button {
+                    withAnimation(.snappy(duration: 0.25)) { selection = list }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: list.systemImage)
+                        Text(list.rawValue)
+                    }
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(selected ? AnyShapeStyle(.white) : AnyShapeStyle(.secondary))
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 3)
+                    .background {
+                        if selected {
+                            Capsule()
+                                .fill(Color.brandPurple)
+                                .matchedGeometryEffect(id: "selection", in: namespace)
+                        }
+                    }
+                    .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .help(list.title)
+            }
+        }
+        .padding(2)
         .background(.fill.secondary, in: Capsule())
     }
 }
@@ -850,6 +967,226 @@ struct AppRow: View {
         .background(hovering ? Color.primary.opacity(0.05) : .clear)
         .contentShape(Rectangle())
         .onHover { hovering = $0 }
+    }
+}
+
+/// App ou ferramenta com o espaço que ocupa e as partes maiores. Clicando, abre o detalhe com como liberar espaço.
+struct SpaceRow: View {
+    @ObservedObject var model: SpaceModel
+    let group: SpaceGroup
+    let share: Double
+    @State private var hovering = false
+    @State private var showing = false
+
+    var body: some View {
+        Button { showing.toggle() } label: {
+            HStack(spacing: 10) {
+                icon.frame(width: 22, height: 22)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(group.name).font(.system(size: 13)).lineLimit(1)
+                    GeometryReader { geo in
+                        Capsule()
+                            .fill(Color.brandPurple)
+                            .frame(width: max(geo.size.width * share, 3))
+                    }
+                    .frame(height: 3)
+                    Text(summary)
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+                Text(Cleaner.format(group.bytes))
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+                    .frame(width: 70, alignment: .trailing)
+                Image(systemName: "info.circle")
+                    .font(.system(size: 14))
+                    .foregroundStyle(hovering || showing ? AnyShapeStyle(Color.brandPurple) : AnyShapeStyle(.tertiary))
+            }
+            .padding(.horizontal, 10)
+            .frame(height: 48)
+            .background(hovering ? Color.primary.opacity(0.05) : .clear)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+        .help("Onde está o espaço de \(group.name) e como liberar")
+        .popover(isPresented: $showing, arrowEdge: .trailing) { SpaceDetail(model: model, group: group) }
+    }
+
+    @ViewBuilder
+    private var icon: some View {
+        if let path = group.iconPath {
+            Image(nsImage: appIcon(path)).resizable()
+        } else {
+            Image(systemName: group.symbol)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 22, height: 22)
+                .background(Color.brandPurple.opacity(0.85), in: RoundedRectangle(cornerRadius: 5, style: .continuous))
+        }
+    }
+
+    /// As maiores coisas de dentro numa linha: "Emulador 5,7 GB · NDK 28.2 2,8 GB · …".
+    private var summary: String {
+        group.leaves.prefix(3)
+            .map { "\($0.label) \(Cleaner.format($0.bytes))" }
+            .joined(separator: " · ")
+    }
+}
+
+/// Detalhe de um item da lista de espaço: cada parte, que se abre no que tem dentro, com lupa (Finder) e lixeira;
+/// como liberar e, quando dá, o botão que libera com um clique.
+struct SpaceDetail: View {
+    @ObservedObject var model: SpaceModel
+    let group: SpaceGroup
+    @State private var expanded: Set<String> = []
+
+    private var parts: [SpaceItem] { group.parts.sorted { $0.bytes > $1.bytes } }
+
+    /// Altura da lista: cresce com as partes abertas, até rolar.
+    private var listHeight: CGFloat {
+        let rows = parts.reduce(0) { $0 + 1 + (expanded.contains($1.id) ? $1.children.count : 0) }
+        return min(CGFloat(rows) * 27, 320)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text(group.name).font(.system(size: 13, weight: .semibold))
+                Spacer()
+                Text(Cleaner.format(group.bytes))
+                    .font(.system(size: 13, weight: .semibold))
+                    .monospacedDigit()
+            }
+            ScrollView {
+                VStack(spacing: 0) {
+                    ForEach(Array(parts.enumerated()), id: \.element.id) { index, part in
+                        if index > 0 { Divider() }
+                        SpaceItemRow(model: model, group: group, item: part, expanded: expanded.contains(part.id)) {
+                            withAnimation(.snappy(duration: 0.2)) {
+                                if expanded.contains(part.id) { expanded.remove(part.id) } else { expanded.insert(part.id) }
+                            }
+                        }
+                        if expanded.contains(part.id) {
+                            ForEach(part.children) { child in
+                                SpaceItemRow(model: model, group: group, item: child, nested: true)
+                            }
+                        }
+                    }
+                }
+            }
+            .frame(height: listHeight)
+            VStack(alignment: .leading, spacing: 4) {
+                Label("Como liberar espaço", systemImage: "lightbulb")
+                    .font(.system(size: 12, weight: .semibold))
+                Text(LocalizedStringKey(group.tip))
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            ForEach(group.optimizations) { optimization in
+                let running = model.running == optimization.id
+                Button { model.optimize(optimization) } label: {
+                    CapsuleLabel(
+                        title: running ? "Apagando…" : "\(optimization.title) · \(Cleaner.format(optimization.bytes))",
+                        systemImage: "trash", fullWidth: true
+                    )
+                }
+                .buttonStyle(CapsuleButtonStyle())
+                .disabled(model.running != nil)
+            }
+        }
+        .padding(14)
+        .frame(width: 380)
+    }
+}
+
+/// Uma linha do detalhe: seta para abrir (se tiver o que mostrar dentro), nome, tamanho, lupa e lixeira.
+struct SpaceItemRow: View {
+    @ObservedObject var model: SpaceModel
+    let group: SpaceGroup
+    let item: SpaceItem
+    var nested = false
+    var expanded = false
+    var onToggle: (() -> Void)?
+
+    var body: some View {
+        HStack(spacing: 8) {
+            // Seta e nome são um botão só: abre e fecha o que tem dentro.
+            Button { onToggle?() } label: {
+                HStack(spacing: 8) {
+                    if nested {
+                        Color.clear.frame(width: 20, height: 1)
+                    } else {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(.secondary)
+                            .rotationEffect(.degrees(expanded ? 90 : 0))
+                            .frame(width: 12)
+                            .opacity(item.children.isEmpty ? 0 : 1)
+                    }
+                    Text(item.label)
+                        .font(.system(size: nested ? 11 : 12))
+                        .foregroundStyle(nested ? .secondary : .primary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Spacer(minLength: 8)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(item.children.isEmpty)
+            .help(item.children.isEmpty ? "" : (expanded ? "Fechar" : "Ver o que tem dentro"))
+            Text(Cleaner.format(item.bytes))
+                .font(.system(size: nested ? 11 : 12))
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+            Button {
+                NSWorkspace.shared.activateFileViewerSelecting([item.url])
+            } label: {
+                Image(systemName: "magnifyingglass").font(.system(size: 11, weight: .semibold))
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.secondary)
+            .help("Mostrar no Finder: \(item.url.path.replacingOccurrences(of: NSHomeDirectory(), with: "~"))")
+            trash.frame(width: 14)
+        }
+        .frame(height: 27)
+    }
+
+    /// Lixeira ativa quando dá para apagar; riscada, com o motivo na dica, quando não dá.
+    @ViewBuilder
+    private var trash: some View {
+        if model.running == item.id {
+            ProgressView().controlSize(.mini)
+        } else {
+            switch item.removal {
+            case .blocked(let reason):
+                Image(systemName: "trash.slash")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.tertiary)
+                    .help(reason)
+            case .trash(let note):
+                removeButton(help: "Mover para a Lixeira. \(note)")
+            case .simulator:
+                removeButton(help: "Apagar o simulador, com os apps e arquivos dele (de vez, pelo Xcode).")
+            case .runtime:
+                removeButton(help: "Apagar esta versão do iOS para os simuladores (de vez, pelo Xcode).")
+            }
+        }
+    }
+
+    private func removeButton(help: String) -> some View {
+        Button { model.remove(item, in: group) } label: {
+            Image(systemName: "trash").font(.system(size: 11, weight: .semibold))
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.secondary)
+        .disabled(model.running != nil)
+        .help(help)
     }
 }
 

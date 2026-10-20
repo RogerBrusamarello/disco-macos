@@ -53,7 +53,7 @@ enum Cleaner {
     ]
 
     /// Sem Xcode/Command Line Tools, `xcrun` abriria o instalador da Apple; nesse caso não roda.
-    private static var hasDeveloperTools: Bool {
+    static var hasDeveloperTools: Bool {
         let fm = FileManager.default
         return fm.fileExists(atPath: "/Applications/Xcode.app") || fm.fileExists(atPath: "/Library/Developer/CommandLineTools")
     }
