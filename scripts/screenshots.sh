@@ -65,7 +65,8 @@ PY
         rm -f "$OUT/detalhe-tela-$THEME.png"
     fi
     osascript -e 'tell application "System Events" to key code 53'; sleep 0.5
-    open "discowidget://clean"; sleep 6
+    # A procura de projetos (Mesa, Documentos, Developer) leva até ~1 min.
+    open "discowidget://clean"; sleep 70
     front; screencapture -x -o -l $W "$OUT/limpeza-$THEME.png"
     open "discowidget://updates"; sleep 5
     front; screencapture -x -o -l $W "$OUT/atualizacoes-$THEME.png"

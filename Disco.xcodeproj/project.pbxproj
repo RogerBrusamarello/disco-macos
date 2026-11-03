@@ -12,6 +12,7 @@
 		1ED6EE6DFD0C59FBF74B4218 /* DiscoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C644D4C3A070F0385FD0D87E /* DiscoApp.swift */; };
 		31E2E3532D94B010017DD75D /* Sampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 234F7280F804071E7C2FFE8C /* Sampler.swift */; };
 		3491ABFC72E168CA175FA310 /* MenuBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00BDE4D3ACC30594C0A6D7DF /* MenuBar.swift */; };
+		3660153D146F3FA9336ED92D /* Projects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36ED3FAFEB971DAB8D0F561D /* Projects.swift */; };
 		3FEFBC87F8CA2C806907D937 /* Fredoka-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E6BC036FCB3235658CABB03F /* Fredoka-Bold.ttf */; };
 		575AD0B86D349DFC9ABAD383 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43EAE6D3D958C174E1E82545 /* Metrics.swift */; };
 		671D8119B0AE1B904321F76F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 02309CA82E25474675BFFB79 /* Assets.xcassets */; };
@@ -62,6 +63,7 @@
 		168B10E7A94B7E6508B91EC9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		218C242E2F7E90721F544DE0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		234F7280F804071E7C2FFE8C /* Sampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sampler.swift; sourceTree = "<group>"; };
+		36ED3FAFEB971DAB8D0F561D /* Projects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Projects.swift; sourceTree = "<group>"; };
 		3A5759F364218E251A3EA908 /* MainWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindow.swift; sourceTree = "<group>"; };
 		3FB547C71AE51A7C4A374573 /* Space.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Space.swift; sourceTree = "<group>"; };
 		43EAE6D3D958C174E1E82545 /* Metrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Metrics.swift; sourceTree = "<group>"; };
@@ -111,6 +113,7 @@
 				939D525D5AAAA47E3906B080 /* LaunchAtLogin.swift */,
 				3A5759F364218E251A3EA908 /* MainWindow.swift */,
 				00BDE4D3ACC30594C0A6D7DF /* MenuBar.swift */,
+				36ED3FAFEB971DAB8D0F561D /* Projects.swift */,
 				234F7280F804071E7C2FFE8C /* Sampler.swift */,
 				3FB547C71AE51A7C4A374573 /* Space.swift */,
 				F1F55B246D247208E144B3E6 /* Updater.swift */,
@@ -251,6 +254,7 @@
 				AEA2508E7C3946C1603CF64F /* MainWindow.swift in Sources */,
 				3491ABFC72E168CA175FA310 /* MenuBar.swift in Sources */,
 				8C12241DBF5BF5B5374086E0 /* Metrics.swift in Sources */,
+				3660153D146F3FA9336ED92D /* Projects.swift in Sources */,
 				31E2E3532D94B010017DD75D /* Sampler.swift in Sources */,
 				FB6F39FD281D07D5E0B6BAC0 /* Space.swift in Sources */,
 				884DF12251EA6E026900935A /* TopApps.swift in Sources */,

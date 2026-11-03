@@ -361,7 +361,7 @@ enum SpaceScanner {
                         : (url.lastPathComponent, .blocked("Programas e configurações do cargo."))
                 },
             ],
-            tip: "As toolchains que você não usa podem sair (`rustup toolchain list` mostra todas). As pastas `target` dos projetos costumam pesar mais: `cargo clean` em cada uma."
+            tip: "As toolchains que você não usa podem sair (`rustup toolchain list` mostra todas). As pastas `target` dos projetos costumam pesar mais: saem na Limpeza, em **Builds de projetos**."
         )
     }
 
@@ -793,7 +793,8 @@ final class SpaceModel: ObservableObject {
             ) else { return }
             running = item.id
             result = nil
-            NSWorkspace.shared.recycle(item.urls) { _, error in
+            NSWorkspace.shared.recycle(item.urls) { trashed, error in
+                Trash.record(Array(trashed.values))
                 DispatchQueue.main.async {
                     self.running = nil
                     if let error {

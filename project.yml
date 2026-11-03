@@ -20,6 +20,7 @@ targets:
       path: App/App.entitlements
       properties:
         com.apple.security.application-groups: [HM8VRSUTC3.br.com.attodev.disco]
+        com.apple.security.automation.apple-events: true
     dependencies:
       - target: DiscoWidgetExtension
     info:
@@ -29,6 +30,9 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSUIElement: true
+        NSDesktopFolderUsageDescription: O disco procura na Mesa pastas de build e dependências de projetos que dá para apagar.
+        NSDocumentsFolderUsageDescription: O disco procura em Documentos pastas de build e dependências de projetos que dá para apagar.
+        NSAppleEventsUsageDescription: O disco pede ao Finder para esvaziar a Lixeira quando você clica em Esvaziar.
         CFBundleURLTypes:
           - CFBundleURLName: br.com.attodev.disco
             CFBundleURLSchemes: [discowidget]

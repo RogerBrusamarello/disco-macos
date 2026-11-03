@@ -33,5 +33,11 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSUIElement</key>
 	<true/>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>O disco pede ao Finder para esvaziar a Lixeira quando você clica em Esvaziar.</string>
+	<key>NSDesktopFolderUsageDescription</key>
+	<string>O disco procura na Mesa pastas de build e dependências de projetos que dá para apagar.</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>O disco procura em Documentos pastas de build e dependências de projetos que dá para apagar.</string>
 </dict>
 </plist>

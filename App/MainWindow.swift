@@ -318,12 +318,16 @@ extension MainView {
     @ViewBuilder
     private var spaceStatus: some View {
         if let result = spaceModel.result {
-            Text(result)
-                .font(.system(size: 11))
-                .foregroundStyle(.green)
-                .monospacedDigit()
-                .lineLimit(1)
-                .help(spaceModel.resultInTrash ? "Esvazie a Lixeira para o espaço voltar ao disco." : "Estimativa: o tamanho medido antes de apagar")
+            // Na Lixeira, o resultado leva à Limpeza, onde dá para esvaziar.
+            Button { if spaceModel.resultInTrash { state.tab = .clean } } label: {
+                Text(result)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.green)
+                    .monospacedDigit()
+                    .lineLimit(1)
+            }
+            .buttonStyle(.plain)
+            .help(spaceModel.resultInTrash ? "O espaço só volta ao disco quando a Lixeira é esvaziada. Clique para esvaziar na Limpeza." : "Estimativa: o tamanho medido antes de apagar")
         }
         if spaceModel.running != nil || spaceModel.scanning {
             ProgressView().controlSize(.mini)
@@ -723,6 +727,7 @@ struct InfoRow: View {
 struct CleanView: View {
     @ObservedObject var model: CleanModel
     let onShowApps: () -> Void
+    @State private var expanded: Set<ProjectJunk.Kind> = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -736,20 +741,41 @@ struct CleanView: View {
 
             ScrollView {
                 VStack(spacing: 0) {
-                    ForEach(Array(Cleaner.items.enumerated()), id: \.element.id) { index, item in
-                        if index > 0 { Divider().padding(.leading, 44) }
+                    TrashRow(model: model)
+                    ForEach([ProjectJunk.Kind.build, .dependencies], id: \.self) { kind in
+                        Divider().padding(.leading, 44)
+                        ProjectGroupRow(model: model, kind: kind, expanded: Binding(
+                            get: { expanded.contains(kind) },
+                            set: { if $0 { expanded.insert(kind) } else { expanded.remove(kind) } }
+                        ))
+                    }
+                    ForEach(Cleaner.items) { item in
+                        Divider().padding(.leading, 44)
                         CleanRow(
                             item: item,
                             size: model.sizes[item.id],
-                            selected: model.selected.contains(item.id)
+                            selected: model.selected.contains(item.id),
+                            blocked: model.blocked[item.id]
                         ) { model.toggle(item.id) }
+                    }
+                    if model.dyldBytes > 0 {
+                        Divider().padding(.leading, 44)
+                        ActionRow(
+                            symbol: "lock",
+                            title: "Cache dyld dos simuladores",
+                            subtitle: "Pasta do sistema: pede a senha de administrador. O simulador recria quando abrir.",
+                            size: Cleaner.format(model.dyldBytes),
+                            button: "Apagar…",
+                            help: "\(AdminCache.dyld.path). No Terminal: sudo rm -rf \(AdminCache.dyld.path)",
+                            action: model.cleanDyld
+                        )
                     }
                 }
             }
             .frame(maxHeight: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             .groupBox()
-            .disabled(model.cleaning)
+            .disabled(model.cleaning || model.busy)
 
             SwapLink(used: model.swapUsed, action: onShowApps)
 
@@ -758,6 +784,7 @@ struct CleanView: View {
                     Text(footerCaption)
                         .font(.system(size: 11))
                         .foregroundStyle(model.freed != nil ? AnyShapeStyle(Color.green) : AnyShapeStyle(.secondary))
+                        .help(model.skipped.map { $0.project.path }.joined(separator: "\n"))
                     Text(Cleaner.format(model.total))
                         .font(.system(size: 22, weight: .semibold, design: .rounded))
                         .monospacedDigit()
@@ -765,22 +792,49 @@ struct CleanView: View {
                         .animation(.easeOut(duration: 0.2), value: model.total)
                 }
                 Spacer()
-                if model.cleaning || model.scanning {
+                if model.cleaning || model.scanning || model.busy || model.projects == nil {
                     ProgressView().controlSize(.small).padding(.trailing, 6)
                 }
                 Button(action: model.clean) {
                     CapsuleLabel(title: model.cleaning ? "Abduzindo…" : "Abduzir selecionados", systemImage: "sparkles")
                 }
                 .buttonStyle(CapsuleButtonStyle())
-                .disabled(model.selected.isEmpty || model.cleaning)
+                .disabled(model.selected.isEmpty || model.cleaning || model.busy)
             }
             .padding(.horizontal, 4)
         }
     }
 
     private var footerCaption: String {
-        if let freed = model.freed { return "✓ \(Cleaner.format(freed)) liberados · selecionado agora" }
+        if let freed = model.freed {
+            let skipped = model.skipped.count
+            let note = skipped == 0 ? "selecionado agora"
+                : skipped == 1 ? "1 projeto em uso ficou de fora" : "\(skipped) projetos em uso ficaram de fora"
+            return "✓ \(Cleaner.format(freed)) liberados · \(note)"
+        }
         return model.scanning ? "Calculando…" : "Selecionado"
+    }
+}
+
+/// Marca da seleção: cheia, parcial (num grupo de projetos), vazia ou bloqueada.
+private struct SelectionMark: View {
+    enum State { case on, partial, off, blocked }
+    let state: State
+
+    var body: some View {
+        Image(systemName: symbol)
+            .font(.system(size: 18))
+            .foregroundStyle(state == .on || state == .partial ? AnyShapeStyle(Color.brandPurple) : AnyShapeStyle(.tertiary))
+            .contentTransition(.symbolEffect(.replace))
+    }
+
+    private var symbol: String {
+        switch state {
+        case .on: "checkmark.circle.fill"
+        case .partial: "minus.circle.fill"
+        case .off: "circle"
+        case .blocked: "nosign"
+        }
     }
 }
 
@@ -788,37 +842,321 @@ struct CleanRow: View {
     let item: CleanItem
     let size: Int64?
     let selected: Bool
+    /// Por que não dá para apagar agora; a linha fica desligada.
+    var blocked: String?
     let onToggle: () -> Void
 
     var body: some View {
         Button(action: onToggle) {
             HStack(spacing: 12) {
-                Image(systemName: selected ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 18))
-                    .foregroundStyle(selected ? AnyShapeStyle(Color.brandPurple) : AnyShapeStyle(.tertiary))
-                    .contentTransition(.symbolEffect(.replace))
+                SelectionMark(state: blocked != nil ? .blocked : selected ? .on : .off)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(item.title).font(.system(size: 13))
-                    Text(item.subtitle).font(.system(size: 11)).foregroundStyle(.secondary)
+                    Text(blocked ?? item.subtitle)
+                        .font(.system(size: 11))
+                        .foregroundStyle(blocked != nil ? AnyShapeStyle(Color.orange) : AnyShapeStyle(.secondary))
+                        .lineLimit(1)
                 }
                 Spacer()
-                Group {
-                    if let size, size > 0 {
-                        Text(Cleaner.format(size)).monospacedDigit().foregroundStyle(.secondary)
-                    } else if size != nil {
-                        Text("Vazio").foregroundStyle(.tertiary)
-                    } else {
-                        ProgressView().controlSize(.mini)
-                    }
-                }
-                .font(.system(size: 12))
+                SizeLabel(size: size)
             }
             .padding(.horizontal, 12)
             .frame(height: 48)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .disabled(blocked != nil)
     }
+}
+
+/// Tamanho à direita da linha: o valor, "Vazio" ou o carregando.
+private struct SizeLabel: View {
+    let size: Int64?
+
+    var body: some View {
+        Group {
+            if let size, size > 0 {
+                Text(Cleaner.format(size)).monospacedDigit().foregroundStyle(.secondary)
+            } else if size != nil {
+                Text("Vazio").foregroundStyle(.tertiary)
+            } else {
+                ProgressView().controlSize(.mini)
+            }
+        }
+        .font(.system(size: 12))
+    }
+}
+
+/// Linha com botão próprio, fora da seleção (Lixeira, cache do sistema).
+struct ActionRow: View {
+    let symbol: String
+    let title: String
+    let subtitle: String
+    var size: String?
+    let button: String
+    var help: String?
+    var disabled = false
+    let action: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: symbol)
+                .font(.system(size: 15))
+                .foregroundStyle(.secondary)
+                .frame(width: 18)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title).font(.system(size: 13))
+                Text(subtitle)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 8)
+            if let size {
+                Text(size).font(.system(size: 12)).monospacedDigit().foregroundStyle(.secondary)
+            }
+            Button(button, action: action).disabled(disabled)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .frame(minHeight: 48)
+        .help(help ?? "")
+    }
+}
+
+/// O que foi para a Lixeira ainda ocupa o disco até ela ser esvaziada.
+struct TrashRow: View {
+    @ObservedObject var model: CleanModel
+
+    var body: some View {
+        ActionRow(
+            symbol: "trash",
+            title: "Lixeira",
+            subtitle: subtitle,
+            size: size,
+            button: "Esvaziar…",
+            help: model.trash?.whole == false
+                ? "O macOS só deixa o disco ver a Lixeira inteira com Acesso Total ao Disco (Ajustes do Sistema → Privacidade e Segurança). Sem ele, o disco mede o que ele mesmo mandou para lá."
+                : nil,
+            disabled: model.trash == nil || (model.trash?.whole == true && model.trash?.bytes == 0),
+            action: model.emptyTrash
+        )
+    }
+
+    private var size: String? {
+        guard let trash = model.trash else { return nil }
+        if trash.bytes > 0 { return Cleaner.format(trash.bytes) }
+        return trash.whole ? "Vazia" : nil
+    }
+
+    private var subtitle: String {
+        guard let trash = model.trash else { return "Medindo…" }
+        if trash.whole { return trash.bytes > 0 ? "Esse espaço só volta ao disco quando a Lixeira é esvaziada" : "Nada parado na Lixeira" }
+        return trash.bytes > 0
+            ? "O que o disco mandou para lá, mais o que você apagou no Finder. Só volta ao disco quando a Lixeira é esvaziada"
+            : "O que está na Lixeira só volta ao disco quando ela é esvaziada"
+    }
+}
+
+/// Builds ou dependências de todos os projetos achados, com a lista por projeto para escolher.
+struct ProjectGroupRow: View {
+    @ObservedObject var model: CleanModel
+    let kind: ProjectJunk.Kind
+    @Binding var expanded: Bool
+
+    var body: some View {
+        let list = model.projects(kind)
+        let selectable = list.filter { !$0.inUse }
+        let chosen = selectable.filter { model.selected.contains($0.id) }
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                Button { model.toggleAll(kind) } label: {
+                    SelectionMark(state: selectable.isEmpty ? .off : chosen.isEmpty ? .off : chosen.count == selectable.count ? .on : .partial)
+                }
+                .buttonStyle(.plain)
+                .disabled(selectable.isEmpty)
+                Button { withAnimation(.snappy(duration: 0.2)) { expanded.toggle() } } label: {
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(kind == .build ? "Builds de projetos" : "Dependências de projetos").font(.system(size: 13))
+                            Text(subtitle(list))
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                        Spacer()
+                        if model.projects == nil {
+                            ProgressView().controlSize(.mini)
+                        } else if list.isEmpty {
+                            Text("Vazio").font(.system(size: 12)).foregroundStyle(.tertiary)
+                        } else {
+                            Text(sizeText(list, chosen)).font(.system(size: 12)).monospacedDigit().foregroundStyle(.secondary)
+                        }
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(.tertiary)
+                            .rotationEffect(.degrees(expanded ? 90 : 0))
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 12)
+            .frame(height: 48)
+
+            if expanded {
+                ForEach(list) { item in
+                    Divider().padding(.leading, 74)
+                    ProjectRow(item: item, selected: model.selected.contains(item.id)) { model.toggle(item.id) }
+                }
+                Divider().padding(.leading, 74)
+                RootsLine(model: model)
+            }
+        }
+    }
+
+    private func subtitle(_ list: [ProjectJunk]) -> String {
+        if model.projects == nil { return "Procurando nas pastas de projetos…" }
+        let what = kind == .build ? "build, .dart_tool, .next, target" : "voltam só com npm install ou pod install"
+        guard !list.isEmpty else { return what }
+        return "\(list.count == 1 ? "1 projeto" : "\(list.count) projetos") · \(what)"
+    }
+
+    /// O total do grupo, ou "marcado de total" quando só parte está marcada. Projetos em uso não entram.
+    private func sizeText(_ list: [ProjectJunk], _ chosen: [ProjectJunk]) -> String {
+        let total = list.filter { !$0.inUse }.reduce(0) { $0 + $1.bytes }
+        let marked = chosen.reduce(0) { $0 + $1.bytes }
+        if total == 0 { return "Em uso" }
+        return marked == 0 || marked == total ? Cleaner.format(total) : "\(Cleaner.format(marked)) de \(Cleaner.format(total))"
+    }
+}
+
+struct ProjectRow: View {
+    let item: ProjectJunk
+    let selected: Bool
+    let onToggle: () -> Void
+
+    var body: some View {
+        Button(action: onToggle) {
+            HStack(spacing: 12) {
+                SelectionMark(state: item.inUse ? .blocked : selected ? .on : .off)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(item.name).font(.system(size: 13)).lineLimit(1)
+                    Text(detail)
+                        .font(.system(size: 11))
+                        .foregroundStyle(item.inUse ? AnyShapeStyle(Color.orange) : AnyShapeStyle(.secondary))
+                        .lineLimit(1)
+                }
+                Spacer()
+                Text(Cleaner.format(item.bytes)).font(.system(size: 12)).monospacedDigit().foregroundStyle(.secondary)
+            }
+            .padding(.leading, 42)
+            .padding(.trailing, 12)
+            .frame(height: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(item.inUse)
+        .help(item.project.path.replacingOccurrences(of: NSHomeDirectory(), with: "~"))
+        .contextMenu {
+            Button("Mostrar no Finder") { NSWorkspace.shared.activateFileViewerSelecting(item.folders) }
+        }
+    }
+
+    private var detail: String {
+        if item.inUse { return "Em uso por um processo (terminal, servidor…): fica de fora" }
+        guard let date = item.lastUsed else { return item.contents }
+        let when = date.formatted(Date.RelativeFormatStyle(presentation: .named, locale: Locale(identifier: "pt_BR")))
+        return "\(item.contents) · usado \(when)"
+    }
+}
+
+/// Onde o disco procura projetos, com o botão para mudar.
+struct RootsLine: View {
+    @ObservedObject var model: CleanModel
+    @State private var editing = false
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Procura em \(model.roots.map(tilde).joined(separator: ", "))")
+                    .foregroundStyle(.secondary)
+                if !model.deniedRoots.isEmpty {
+                    Text("Sem permissão para ler \(model.deniedRoots.map(tilde).joined(separator: ", ")): libere em Ajustes do Sistema → Privacidade e Segurança → Arquivos e Pastas → Disco.")
+                        .foregroundStyle(.orange)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .lineLimit(2)
+            Spacer(minLength: 8)
+            Button("Pastas…") { editing = true }
+                .popover(isPresented: $editing, arrowEdge: .bottom) { RootsEditor(model: model) }
+        }
+        .font(.system(size: 11))
+        .padding(.leading, 74)
+        .padding(.trailing, 12)
+        .padding(.vertical, 8)
+    }
+}
+
+/// Pastas onde o disco procura projetos: tirar, pôr e voltar ao padrão (Mesa, Documentos e Developer).
+struct RootsEditor: View {
+    @ObservedObject var model: CleanModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Pastas de projetos").font(.system(size: 13, weight: .semibold))
+                Text("O disco procura builds e dependências dentro destas pastas, em até 8 níveis.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            VStack(spacing: 0) {
+                ForEach(Array(model.roots.enumerated()), id: \.element.path) { index, url in
+                    if index > 0 { Divider().padding(.leading, 34) }
+                    HStack(spacing: 8) {
+                        Image(systemName: "folder").foregroundStyle(.secondary).frame(width: 18)
+                        Text(tilde(url)).font(.system(size: 12)).lineLimit(1).truncationMode(.middle)
+                        Spacer()
+                        Button {
+                            model.setRoots(model.roots.filter { $0 != url })
+                        } label: {
+                            Image(systemName: "minus.circle.fill").foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Parar de procurar aqui")
+                    }
+                    .padding(.horizontal, 8)
+                    .frame(height: 30)
+                }
+            }
+            .groupBox()
+            HStack {
+                Button("Voltar ao padrão") { model.setRoots(ProjectScanner.defaultRoots) }
+                    .disabled(model.roots == ProjectScanner.defaultRoots)
+                Spacer()
+                Button("Adicionar pasta…", action: add)
+            }
+        }
+        .padding(14)
+        .frame(width: 340)
+    }
+
+    private func add() {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.allowsMultipleSelection = true
+        panel.prompt = "Adicionar"
+        guard panel.runModal() == .OK else { return }
+        let new = panel.urls.filter { url in !model.roots.contains { $0.path == url.path } }
+        model.setRoots(model.roots + new)
+    }
+}
+
+private func tilde(_ url: URL) -> String {
+    url.path.replacingOccurrences(of: NSHomeDirectory(), with: "~")
 }
 
 /// Swap não entra na seleção (o macOS não deixa apagar): leva à Visão geral, onde encerrar

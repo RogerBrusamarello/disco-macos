@@ -31,7 +31,7 @@
 - **Mostra o uso do disco e da memória ao vivo**, na barra de menus (com a % de RAM e de HD ao lado do disco voador, se você quiser), nos widgets e na janela.
 - **Lista os apps que mais usam memória**, somando os processos auxiliares de cada um (Chrome, apps em Electron…) e o que foi aberto no terminal dele (`node`, `gopls`… contam no VS Code ou no Terminal), com quanto de cada app está na swap e um **ⓧ para forçar o encerramento**.
 - **Mostra o que mais ocupa o disco:** qualquer app e as ferramentas de desenvolvimento (Docker, simuladores do iOS, Android Studio e Gradle, Homebrew…), com o que tem dentro de cada um. O que dá para apagar com segurança vai para a Lixeira com um clique; o que o app precisa fica com a lixeira riscada e o motivo.
-- **Abduz temporários:** você escolhe o que apagar entre caches, temporários do sistema, builds do Xcode, simuladores, pacotes e logs antigos, e vê o tamanho de cada item antes.
+- **Abduz temporários:** você escolhe o que apagar entre os builds e as dependências dos seus projetos (Flutter, Node, Next.js, Rust, CocoaPods), caches, temporários do sistema, builds do Xcode, Gradle, Go, simuladores, pacotes e logs antigos, e vê o tamanho de cada item antes. Também mostra quanto está parado na Lixeira, com o botão para esvaziar.
 - **Respeita o visual do macOS:** modo claro e escuro, fonte do sistema, vidro translúcido e cores flat na paleta da marca.
 - **Se atualiza sozinho:** procura versões novas no GitHub uma vez por dia e, com um clique, baixa, instala e reabre.
 - **Fica leve:** sem ícone no Dock, abre junto com o Mac (dá para desligar na aba Ajustes) e só atualiza com frequência quando você está olhando.
@@ -81,7 +81,7 @@ Clicando numa linha, abre o detalhe com as partes do item (o app, os dados, o ca
 - **Lixeira ativa:** dá para apagar. A dica (passando o mouse) diz o que acontece. Antes de apagar aparece uma confirmação com o tamanho.
 - **Lixeira riscada:** não dá para apagar pelo disco, e a dica diz por quê: é importante para o app funcionar, faz parte do macOS, não há permissão, ou a ferramenta tem o próprio jeito de apagar (`brew uninstall`, `ollama rm`, `docker system prune`…).
 
-O que é apagado pela lixeira **vai para a Lixeira do Mac**: dá para recuperar, e o espaço volta quando você esvazia a Lixeira. O resultado aparece ao lado do título da lista (*✓ X na Lixeira*). Simuladores e runtimes do iOS são a exceção: saem de vez pelo `xcrun simctl`, que é o jeito que o Xcode aceita. Se o app do item estiver aberto, o disco pede para fechar antes.
+O que é apagado pela lixeira **vai para a Lixeira do Mac**: dá para recuperar, e o espaço só volta ao disco quando você esvazia a Lixeira. O resultado aparece ao lado do título da lista (*✓ X na Lixeira*); clicando nele, abre a aba Limpeza, que mostra quanto está na Lixeira e tem o botão **Esvaziar…** (veja [Lixeira](#lixeira)). Simuladores e runtimes do iOS são a exceção: saem de vez pelo `xcrun simctl`, que é o jeito que o Xcode aceita. Se o app do item estiver aberto, o disco pede para fechar antes.
 
 A mesma regra vale para qualquer app de Aplicativos (Word, Excel, Photoshop, Chrome…):
 
@@ -123,14 +123,14 @@ Em dois itens, o detalhe também tem um botão que apaga tudo de uma vez, **de v
 | **Outros apps** | cada app de Aplicativos, os dados dele em `~/Library/Application Support` e o cache, com cada pasta de dentro separada |
 
 - A medição roda em segundo plano e leva de segundos a um minuto. Ela acontece na primeira vez que a lista aparece e de novo se já faz mais de 30 minutos. O ↻ ao lado do título mede na hora, e passando o mouse em cima aparece quando foi a última medição.
-- Para não pedir permissões, o disco não entra em Mesa, Documentos, Downloads, Lixeira, nem nas pastas de dados de outros apps em `~/Library/Containers` (do Docker, lê só o arquivo do disco virtual). Os dados dos apps da Apple também ficam de fora: conta só o tamanho do app.
+- Para não pedir permissões, esta lista não entra em Mesa, Documentos, Downloads, Lixeira, nem nas pastas de dados de outros apps em `~/Library/Containers` (do Docker, lê só o arquivo do disco virtual). Os dados dos apps da Apple também ficam de fora: conta só o tamanho do app. Os projetos da Mesa e de Documentos aparecem na aba Limpeza (veja [Projetos](#projetos)).
 
 ## Abduzir temporários
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/aba-limpeza-escuro.png">
-    <img src="docs/readme/aba-limpeza-claro.png" width="560" alt="Aba Limpeza: itens com seleção e tamanho de cada um, a swap em uso com o link Ver apps e o botão Abduzir selecionados">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/aba-limpeza-projetos-escuro.png">
+    <img src="docs/readme/aba-limpeza-projetos-claro.png" width="560" alt="Aba Limpeza: a Lixeira com o botão Esvaziar, Builds de projetos (8 projetos, 1,58 GB) marcado, Dependências de projetos (5 projetos, 2,3 GB) desmarcado e os caches com seleção e tamanho, a swap em uso com o link Ver apps e o botão Abduzir selecionados">
   </picture>
 </p>
 
@@ -138,14 +138,59 @@ O botão **Abduzir temporários** tem o mesmo visual no widget, na barra de menu
 
 | Item | O que apaga | Efeito colateral |
 |---|---|---|
-| **Cache de aplicativos** | `~/Library/Caches` | Os apps recriam o cache sozinhos. A primeira abertura pode ficar um pouco mais lenta. |
+| **Lixeira** | botão **Esvaziar…**, fora da seleção (veja [Lixeira](#lixeira)) | Apaga de vez: não dá para recuperar. |
+| **Builds de projetos** | `build` e `.dart_tool` (Flutter), `.next` (Next.js), `target` (Rust) e os `Pods` de apps Flutter, projeto por projeto (veja [Projetos](#projetos)) | O próximo build compila do zero e demora mais. |
+| **Dependências de projetos** *(desmarcado)* | `node_modules` e os `Pods` de apps iOS nativos | O projeto só volta a rodar depois do `npm install` (ou `yarn`, `pnpm install`) ou do `pod install`. |
+| **Cache de aplicativos** | `~/Library/Caches`, menos `go-build`, que tem item próprio | Os apps recriam o cache sozinhos. A primeira abertura pode ficar um pouco mais lenta. |
 | **Temporários do sistema** | arquivos da pasta temporária do macOS (`$TMPDIR`, em `/var/folders/…/T`) com mais de 3 dias | Nenhum no uso normal: os apps abertos usam os arquivos recentes, que ficam. |
 | **Xcode DerivedData** | `~/Library/Developer/Xcode/DerivedData` | O próximo build compila tudo do zero. |
 | **Caches de simuladores** | `~/Library/Developer/CoreSimulator/Caches` e simuladores de versões do iOS que não estão mais instaladas | Os simuladores abrem um pouco mais devagar na primeira vez. |
+| **Cache do Gradle** | `~/.gradle/caches`. Com o Gradle rodando (um `GradleDaemon` aberto pelo Android Studio ou por um build), a linha fica bloqueada e o disco não apaga | O próximo build de cada projeto baixa as dependências de novo e demora mais. |
+| **Cache de build do Go** | `~/Library/Caches/go-build` | O próximo `go build` compila do zero. |
+| **Instaladores de extensões** | `CachedExtensionVSIXs` do VS Code e do Cursor, em `~/Library/Application Support` | Nenhum: são cópias dos instaladores das extensões que já estão instaladas. |
 | **npm / Yarn / pnpm** | `~/.npm/_cacache`, `~/.yarn/berry/cache`, `~/Library/pnpm/store` | O próximo `install` baixa os pacotes de novo. |
 | **Logs antigos** | arquivos de `~/Library/Logs` com mais de 7 dias | Nenhum no uso normal. |
+| **Dados dos simuladores** *(desmarcado)* | fecha os simuladores e zera todos com `xcrun simctl erase all`. O tamanho é a soma das pastas `data` de cada simulador | Apaga os apps instalados nos simuladores e os arquivos deles. Os simuladores continuam na lista do Xcode. |
+| **Cache dyld dos simuladores** | botão **Apagar…**, fora da seleção (veja [Cache dyld dos simuladores](#cache-dyld-dos-simuladores)) | O próximo simulador que abrir recria o cache e demora mais nessa vez. |
 
-Não mexe em documentos, fotos, projetos, Lixeira, configurações nem arquivos do sistema.
+Não mexe em documentos, fotos, código dos projetos, configurações nem arquivos do sistema. Os itens marcados como *desmarcado* começam fora da seleção porque têm efeito colateral: marque se quiser. Uma linha bloqueada (⊘) mostra o motivo no lugar da descrição.
+
+### Projetos
+
+O disco procura projetos em `~/Desktop` (Mesa), `~/Documents` e `~/Developer`, até 8 níveis abaixo de cada uma. **Pastas…**, embaixo da lista de projetos aberta, muda onde procurar: tira, põe outras pastas ou volta ao padrão. Na primeira procura, o macOS pede permissão para o disco ler a Mesa e Documentos; sem ela, a lista diz qual pasta ficou de fora e onde liberar (Ajustes do Sistema → Privacidade e Segurança → Arquivos e Pastas).
+
+Uma pasta só entra com o marcador do projeto ao lado:
+
+| Pasta | Marcador | Item |
+|---|---|---|
+| `build`, `.dart_tool` | `pubspec.yaml` | Builds |
+| `ios/Pods`, `macos/Pods` | `pubspec.yaml`, com o `Podfile` ao lado dos `Pods` | Builds (o `flutter run` reinstala) |
+| `.next` | `package.json` | Builds |
+| `target` | `Cargo.toml` | Builds |
+| `node_modules` | `package.json` | Dependências |
+| `Pods` | `Podfile` | Dependências |
+
+- **Sempre fica:** pasta sem marcador (um `build/` sem `pubspec.yaml` pode ser código-fonte ou guardar arquivos de release, como o `build/release` deste projeto), tudo dentro de um SDK (pasta com `bin/flutter`, `bin/cache/dart-sdk`, `platform-tools` ou `build-tools`, como `~/Documents/flutter`), tudo dentro de `node_modules`, pastas ocultas, atalhos e pacotes (`.app`, `.xcodeproj`…).
+- **Em uso:** se algum processo está com a pasta atual (cwd) dentro do projeto, como um terminal, um servidor ou um script `node`, o projeto aparece bloqueado e fica de fora. O disco confere de novo na hora de apagar, e o resultado diz quantos projetos ficaram.
+- **Escolher:** clicando no grupo, abre a lista por projeto, com o que sai, o tamanho e quando foi usado (a última modificação). Dá para marcar projeto por projeto; o ✓ do grupo marca ou desmarca todos. Clique com o botão direito num projeto para mostrar as pastas no Finder.
+- **Apagar:** as pastas saem de vez (não vão para a Lixeira). Antes de apagar cada uma, o disco confere de novo se o marcador continua ao lado.
+
+### Lixeira
+
+O que vai para a Lixeira (pela lixeira de [Mais ocupam espaço](#mais-ocupam-espaço) ou pelo Finder) continua ocupando o disco até ela ser esvaziada. A primeira linha da Limpeza mostra quanto está parado lá:
+
+- **Com Acesso Total ao Disco** (Ajustes do Sistema → Privacidade e Segurança), o disco mede a Lixeira inteira.
+- **Sem ele**, o macOS não deixa listar a Lixeira. O disco mede o que ele mesmo mandou para lá, que ele guarda ao mover cada item. O que você apagou pelo Finder não entra na conta.
+
+**Esvaziar…** pede confirmação e então pede ao Finder para esvaziar a Lixeira inteira, de vez. Na primeira vez, o macOS pergunta se o disco pode controlar o Finder. Se a permissão for negada, o disco apaga só o que ele mesmo mandou para a Lixeira e avisa; para dar a permissão depois: Ajustes do Sistema → Privacidade e Segurança → Automação → Disco → Finder.
+
+### Cache dyld dos simuladores
+
+`/Library/Developer/CoreSimulator/Caches/dyld` (alguns GB) é o cache das bibliotecas do sistema que os simuladores do iOS montam, e pertence ao root. Quando existe, aparece no fim da lista com o tamanho e o botão **Apagar…**, fora da seleção: depois da confirmação, o disco fecha os simuladores e o macOS pede a senha de administrador. Dá para fazer o mesmo no Terminal (a dica da linha mostra o comando):
+
+```bash
+sudo rm -rf /Library/Developer/CoreSimulator/Caches/dyld
+```
 
 ### Swap
 
@@ -266,6 +311,7 @@ Na aba **Ajustes**, a seção **Início** tem a chave **Abrir junto com o Mac**.
 - **Botões dos widgets:** os widgets também não podem apagar arquivos nem encerrar apps. Os botões abrem links `discowidget://…`, e o app faz a ação: abre a aba Limpeza, abre a janela ou pede confirmação para forçar o encerramento.
 - **Atualizações:** o app lê `api.github.com/repos/RogerBrusamarello/disco-macos/releases/latest`, compara a tag (`v1.4` → `1.4`) com a versão instalada e baixa o asset `Disco.dmg`. Antes de trocar o app, confere o `sha256` que o GitHub publica para o asset e a assinatura do código (mesmo identificador e mesmo Team ID). A troca é feita no lugar, e o app e o widget são registrados de novo, como no `install.sh`.
 - **Mais ocupam espaço:** o app soma o espaço que cada arquivo ocupa de fato (`totalFileAllocatedSize`, que conta só o que está gravado nos arquivos esparsos, como o disco do Docker), em paralelo, e pega o tamanho dos runtimes dos simuladores no `xcrun simctl runtime list`. A pasta de dados de cada app é achada pelo nome do app, pelo bundle id ou pelo `CFBundleName` (o VS Code guarda em `Code`). A lixeira de cada item usa `NSWorkspace.recycle`, o mesmo do Finder (pede a senha de administrador quando o app pertence ao sistema, como os instalados pela App Store), e os simuladores saem com `xcrun simctl delete`.
+- **Limpeza de projetos:** a procura lê só os nomes de cada pasta (sem abrir arquivos) e para em pastas ocultas, `node_modules`, SDKs e pacotes. Os projetos em uso vêm do `lsof -a -d cwd` (a pasta atual de cada processo do usuário), comparados com o caminho real do projeto. O Gradle rodando vem do `pgrep -f GradleDaemon`.
 - **Consumo:** o app fica parado quase o tempo todo. Faz uma leitura por minuto da memória de cada app, que leva milissegundos, lê o total de RAM e de disco a cada 5 s para o ícone da barra (só duas chamadas ao sistema) e só atualiza a cada 2 s enquanto o painel ou a janela estão abertos.
 
 ## Compilar
@@ -306,13 +352,13 @@ Para só gerar o `.dmg`, sem publicar: `./scripts/release.sh dmg v1.6` (ou `HEAD
 ### Estrutura
 
 ```
-App/        agente: barra de menus e painel, janela (Visão geral, Limpeza, Atualizações e Ajustes), limpeza, o que mais ocupa o disco (Space.swift), leitura de processos, atualização pelo GitHub, abrir junto com o Mac (LaunchAtLogin.swift)
+App/        agente: barra de menus e painel, janela (Visão geral, Limpeza, Atualizações e Ajustes), limpeza com a Lixeira e o cache dyld (Cleaner.swift), builds e dependências dos projetos (Projects.swift), o que mais ocupa o disco (Space.swift), leitura de processos, atualização pelo GitHub, abrir junto com o Mac (LaunchAtLogin.swift)
 Widget/     extensão WidgetKit: widgets Disco e Memória
 Shared/     leituras de disco e RAM, paleta e botão-cápsula da marca, lista de apps compartilhada
 brand/      identidade: ícone, ilustração, logo, slogan, símbolo da barra, fundo do .dmg e fontes
 AGENTS.md   regras para quem mexe no projeto, pessoa ou agente (o CLAUDE.md só importa ele)
 docs/       imagens deste README
-scripts/    install.sh (compila e instala), release.sh (gera o .dmg e o release) e screenshots.sh (prints deste README)
+scripts/    install.sh (compila e instala), release.sh (gera o .dmg e o release) e screenshots.sh (prints deste README; espera ~1 min na Limpeza, pela procura de projetos)
 .githooks/  pre-push: push de uma tag vX.Y gera e publica o release
 project.yml definição do projeto (XcodeGen)
 ```
