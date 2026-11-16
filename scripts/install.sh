@@ -8,7 +8,14 @@ LS=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.f
 BUILT="$PWD/build/Build/Products/Release/Disco.app"
 
 xcodegen generate >/dev/null
+rm -rf "$BUILT"  # sem build antigo: se a compilação falhar, não instala uma versão velha
 xcodebuild -project Disco.xcodeproj -scheme Disco -configuration Release -derivedDataPath build build | grep -E "error|BUILD" || true
+
+# Só mexe no app instalado se a compilação gerou o app novo.
+if [[ ! -d "$BUILT" ]]; then
+    echo "Falha ao compilar: o Disco instalado continua como estava." >&2
+    exit 1
+fi
 
 pkill -x Disco || true
 pkill -f DiscoWidgetExtension || true

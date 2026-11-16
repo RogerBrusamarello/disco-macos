@@ -360,7 +360,7 @@ Shared/     leituras de disco e RAM, paleta e botão-cápsula da marca, lista de
 brand/      identidade: ícone, ilustração, logo, slogan, símbolo da barra, fundo do .dmg e fontes
 AGENTS.md   regras para quem mexe no projeto, pessoa ou agente (o CLAUDE.md só importa ele)
 docs/       imagens deste README
-scripts/    install.sh (compila e instala), release.sh (gera o .dmg e o release) e screenshots.sh (prints deste README; espera ~1 min na Limpeza, pela procura de projetos)
+scripts/    install.sh (compila e instala; se a compilação falhar, mantém o Disco instalado), release.sh (gera o .dmg e o release) e screenshots.sh (prints deste README; espera ~1 min na Limpeza, pela procura de projetos)
 .githooks/  pre-push: push de uma tag vX.Y gera e publica o release
 project.yml definição do projeto (XcodeGen)
 ```
