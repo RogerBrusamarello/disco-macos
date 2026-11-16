@@ -354,6 +354,12 @@ private func icon(_ path: String) -> NSImage {
 
 private let driveIcon = icon("/")
 private let activityIcon = icon("/System/Applications/Utilities/Activity Monitor.app")
+private let thermometerIcon: NSImage = {
+    let config = NSImage.SymbolConfiguration(pointSize: 26, weight: .regular)
+        .applying(.init(paletteColors: [.systemOrange]))
+    return NSImage(systemSymbolName: "thermometer.medium", accessibilityDescription: "Temperatura")?
+        .withSymbolConfiguration(config) ?? NSImage()
+}()
 
 struct Bar: View {
     let fraction: Double
@@ -376,15 +382,17 @@ struct StatSection: View {
     let fraction: Double
     let tint: Color
     let detail: String
+    /// Texto no lugar da porcentagem (ex.: "52 °C").
+    var value: String? = nil
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(nsImage: icon).resizable().frame(width: 36, height: 36)
+            Image(nsImage: icon).resizable().scaledToFit().frame(width: 36, height: 36)
             VStack(alignment: .leading, spacing: 5) {
                 HStack {
                     Text(title).font(.system(size: 13, weight: .semibold))
                     Spacer()
-                    Text("\(Int((fraction * 100).rounded()))%")
+                    Text(value ?? "\(Int((fraction * 100).rounded()))%")
                         .font(.system(size: 13, weight: .semibold, design: .rounded))
                         .monospacedDigit()
                 }
@@ -478,6 +486,20 @@ struct PopoverView: View {
                 }
             }
             .module()
+
+            if let cpu = model.thermal.cpu {
+                StatSection(
+                    icon: thermometerIcon,
+                    title: "Temperatura",
+                    fraction: min(cpu / 100, 1),
+                    tint: .thermalTint(model.thermal.state),
+                    detail: "CPU"
+                        + (model.thermal.battery.map { " · bateria \(celsius($0))" } ?? "")
+                        + " · \(thermalLabel(model.thermal.state))",
+                    value: celsius(cpu)
+                )
+                .module()
+            }
 
             Button(action: onOpen) {
                 CapsuleLabel(title: "Abrir Disco", systemImage: "macwindow", style: .outline, fullWidth: true)

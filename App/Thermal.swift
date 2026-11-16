@@ -1,5 +1,6 @@
 import Foundation
 import IOKit
+import SwiftUI
 
 /// Temperatura do Mac lida dos sensores do chip (Apple Silicon), sem sudo.
 /// Usa o IOHIDEventSystem, o mesmo caminho de apps como o Stats; as funções são privadas do IOKit,
@@ -91,5 +92,15 @@ func thermalLabel(_ state: ProcessInfo.ThermalState) -> String {
     case .serious: "quente, desempenho reduzido"
     case .critical: "muito quente"
     default: "temperatura normal"
+    }
+}
+
+extension Color {
+    static func thermalTint(_ state: ProcessInfo.ThermalState) -> Color {
+        switch state {
+        case .serious, .critical: .red
+        case .fair: .orange
+        default: .brandPurple
+        }
     }
 }

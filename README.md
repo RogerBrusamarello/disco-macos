@@ -21,7 +21,7 @@
 
 <p align="center">
   <a href="https://github.com/RogerBrusamarello/disco-macos/releases/latest"><b>⬇︎ Baixar Disco.dmg</b></a>
-  &nbsp;·&nbsp; versão 1.8 &nbsp;·&nbsp; macOS 14 ou mais recente &nbsp;·&nbsp; Apple Silicon
+  &nbsp;·&nbsp; versão 1.9 &nbsp;·&nbsp; macOS 14 ou mais recente &nbsp;·&nbsp; Apple Silicon
 </p>
 
 ---
@@ -228,6 +228,8 @@ Na barra de menus fica o **disco voador em contorno**, no mesmo traço dos ícon
 - **RAM:** quanto da memória está em uso (o mesmo número do cartão Memória). Vem ligado.
 - **HD:** quanto do Macintosh HD está ocupado (o mesmo número do cartão Macintosh HD). Vem desligado.
 - **CPU:** a temperatura do núcleo mais quente do chip, em graus (ex.: 52°). Vem desligado. A dica do ícone também mostra a temperatura.
+
+O painel que abre ao clicar no disco voador tem, além do Macintosh HD e da Memória, o módulo **Temperatura**, com a barra no mesmo estilo, a temperatura da CPU e da bateria e o estado térmico.
 
 Cada bloco liga e desliga na aba **Ajustes** da janela, que mostra uma prévia de como fica a barra. Os números atualizam a cada 5 segundos, e o bloco tem largura fixa, então o ícone não pula quando a porcentagem muda. Com todos desligados, fica só o disco voador.
 
