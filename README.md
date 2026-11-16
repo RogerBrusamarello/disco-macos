@@ -28,7 +28,8 @@
 
 ## O que o disco faz
 
-- **Mostra o uso do disco e da memória ao vivo**, na barra de menus (com a % de RAM e de HD ao lado do disco voador, se você quiser), nos widgets e na janela.
+- **Mostra o uso do disco e da memória ao vivo**, na barra de menus (com a % de RAM e de HD e a temperatura da CPU ao lado do disco voador, se você quiser), nos widgets e na janela.
+- **Mostra a temperatura do Mac:** a da CPU (o núcleo mais quente do chip) e a da bateria, em °C, com um aviso quando o macOS começa a esquentar ou a reduzir o desempenho. Lê os sensores direto do chip, sem pedir senha.
 - **Lista os apps que mais usam memória**, somando os processos auxiliares de cada um (Chrome, apps em Electron…) e o que foi aberto no terminal dele (`node`, `gopls`… contam no VS Code ou no Terminal), com quanto de cada app está na swap e um **ⓧ para forçar o encerramento**.
 - **Mostra o que mais ocupa o disco:** qualquer app e as ferramentas de desenvolvimento (Docker, simuladores do iOS, Android Studio e Gradle, Homebrew…), com o que tem dentro de cada um. O que dá para apagar com segurança vai para a Lixeira com um clique; o que o app precisa fica com a lixeira riscada e o motivo.
 - **Abduz temporários:** você escolhe o que apagar entre os builds e as dependências dos seus projetos (Flutter, Node, Next.js, Rust, CocoaPods), caches, temporários do sistema, builds do Xcode, Gradle, Go, simuladores, pacotes e logs antigos, e vê o tamanho de cada item antes. Também mostra quanto está parado na Lixeira, com o botão para esvaziar.
@@ -47,7 +48,7 @@
 
 Abre pelo Spotlight (`⌘ Espaço` → *Disco*), pelo Finder, clicando num widget ou em **Abrir Disco** na barra de menus.
 
-- **Visão geral:** cartões do **Macintosh HD** e da **Memória** e uma lista rolável que alterna, pela chave **Memória | Disco** ao lado do título, entre **Mais usam memória** (até 10 apps) e **Mais ocupam espaço** (veja [Mais ocupam espaço](#mais-ocupam-espaço)). Embaixo da memória de cada app aparece a estimativa da parte dele na swap (a partir de 50 MB). Cada app tem um ⓧ sempre visível, com a dica *Forçar encerrar*, e uma confirmação antes de fechar; encerrar também fecha os processos abertos no terminal do app.
+- **Visão geral:** cartões do **Macintosh HD** e da **Memória**, a linha da **temperatura** (CPU, bateria e o estado térmico: normal, aquecendo, quente ou muito quente) e uma lista rolável que alterna, pela chave **Memória | Disco** ao lado do título, entre **Mais usam memória** (até 10 apps) e **Mais ocupam espaço** (veja [Mais ocupam espaço](#mais-ocupam-espaço)). Embaixo da memória de cada app aparece a estimativa da parte dele na swap (a partir de 50 MB). Cada app tem um ⓧ sempre visível, com a dica *Forçar encerrar*, e uma confirmação antes de fechar; encerrar também fecha os processos abertos no terminal do app.
 - **Limpeza:** a lista do que pode ser abduzido (veja abaixo).
 - **Atualizações:** a versão instalada, a mais recente no GitHub e as novidades (veja abaixo).
 - **Ajustes:** o que aparece ao lado do disco voador na barra de menus (veja [Barra de menus](#barra-de-menus)), a dica de como mudar o disco voador de lugar na barra e a chave **Abrir junto com o Mac** (veja [Abrir junto com o Mac](#abrir-junto-com-o-mac)).
@@ -222,12 +223,13 @@ A atualização automática vale a partir da versão 1.4. Quem está na 1.3 ou a
   <img src="docs/readme/barra-ram-hd.png" width="486" alt="Barra de menus nos temas escuro e claro: Wi-Fi, o disco voador em contorno, os blocos RAM 78% e HD 86% e a bateria">
 </p>
 
-Na barra de menus fica o **disco voador em contorno**, no mesmo traço dos ícones do sistema. Ao lado dele podem aparecer dois blocos, com o nome em cima e a porcentagem embaixo:
+Na barra de menus fica o **disco voador em contorno**, no mesmo traço dos ícones do sistema. Ao lado dele podem aparecer até três blocos, com o nome em cima e o valor embaixo:
 
 - **RAM:** quanto da memória está em uso (o mesmo número do cartão Memória). Vem ligado.
 - **HD:** quanto do Macintosh HD está ocupado (o mesmo número do cartão Macintosh HD). Vem desligado.
+- **CPU:** a temperatura do núcleo mais quente do chip, em graus (ex.: 52°). Vem desligado. A dica do ícone também mostra a temperatura.
 
-Cada bloco liga e desliga na aba **Ajustes** da janela, que mostra uma prévia de como fica a barra. Os números atualizam a cada 5 segundos, e o bloco tem largura fixa, então o ícone não pula quando a porcentagem muda. Com os dois desligados, fica só o disco voador.
+Cada bloco liga e desliga na aba **Ajustes** da janela, que mostra uma prévia de como fica a barra. Os números atualizam a cada 5 segundos, e o bloco tem largura fixa, então o ícone não pula quando a porcentagem muda. Com todos desligados, fica só o disco voador.
 
 <p align="center">
   <picture>
@@ -352,7 +354,7 @@ Para só gerar o `.dmg`, sem publicar: `./scripts/release.sh dmg v1.6` (ou `HEAD
 ### Estrutura
 
 ```
-App/        agente: barra de menus e painel, janela (Visão geral, Limpeza, Atualizações e Ajustes), limpeza com a Lixeira e o cache dyld (Cleaner.swift), builds e dependências dos projetos (Projects.swift), o que mais ocupa o disco (Space.swift), leitura de processos, atualização pelo GitHub, abrir junto com o Mac (LaunchAtLogin.swift)
+App/        agente: barra de menus e painel, janela (Visão geral, Limpeza, Atualizações e Ajustes), limpeza com a Lixeira e o cache dyld (Cleaner.swift), builds e dependências dos projetos (Projects.swift), o que mais ocupa o disco (Space.swift), leitura de processos, atualização pelo GitHub, abrir junto com o Mac (LaunchAtLogin.swift), temperatura dos sensores do chip (Thermal.swift)
 Widget/     extensão WidgetKit: widgets Disco e Memória
 Shared/     leituras de disco e RAM, paleta e botão-cápsula da marca, lista de apps compartilhada
 brand/      identidade: ícone, ilustração, logo, slogan, símbolo da barra, fundo do .dmg e fontes

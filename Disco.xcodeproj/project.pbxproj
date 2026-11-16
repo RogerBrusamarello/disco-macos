@@ -25,6 +25,7 @@
 		AEA2508E7C3946C1603CF64F /* MainWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A5759F364218E251A3EA908 /* MainWindow.swift */; };
 		BF23443EBF3754CD2C3E3FC1 /* Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = F82ED13AE6FD952006D019F3 /* Brand.swift */; };
 		D17FF8D7E9EE5D574A246BC6 /* LaunchAtLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 939D525D5AAAA47E3906B080 /* LaunchAtLogin.swift */; };
+		DC3B03349A7A663AE058A73E /* Thermal.swift in Sources */ = {isa = PBXBuildFile; fileRef = A431A884550372BA1B0B58CC /* Thermal.swift */; };
 		ED0F2B0C8489F9E4C69132BD /* TopApps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6636640A469C60F2961B6E1B /* TopApps.swift */; };
 		FB6F39FD281D07D5E0B6BAC0 /* Space.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB547C71AE51A7C4A374573 /* Space.swift */; };
 		FD216C1DB1ADE59D74B65FC4 /* DM-Sans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0E95D7077D3B4053BDB2BB58 /* DM-Sans-Regular.ttf */; };
@@ -73,6 +74,7 @@
 		8AC605F4E372C0010624E0E0 /* DiscoWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoWidget.swift; sourceTree = "<group>"; };
 		939D525D5AAAA47E3906B080 /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
 		9BF2A8CEBF491AC0E08CF2FB /* DiscoWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DiscoWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A431A884550372BA1B0B58CC /* Thermal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Thermal.swift; sourceTree = "<group>"; };
 		A784A75656C0073CBCEC810B /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		C644D4C3A070F0385FD0D87E /* DiscoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoApp.swift; sourceTree = "<group>"; };
 		E6BC036FCB3235658CABB03F /* Fredoka-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fredoka-Bold.ttf"; sourceTree = "<group>"; };
@@ -116,6 +118,7 @@
 				36ED3FAFEB971DAB8D0F561D /* Projects.swift */,
 				234F7280F804071E7C2FFE8C /* Sampler.swift */,
 				3FB547C71AE51A7C4A374573 /* Space.swift */,
+				A431A884550372BA1B0B58CC /* Thermal.swift */,
 				F1F55B246D247208E144B3E6 /* Updater.swift */,
 				8F51E5985D3F20C16BA957F5 /* Fonts */,
 			);
@@ -257,6 +260,7 @@
 				3660153D146F3FA9336ED92D /* Projects.swift in Sources */,
 				31E2E3532D94B010017DD75D /* Sampler.swift in Sources */,
 				FB6F39FD281D07D5E0B6BAC0 /* Space.swift in Sources */,
+				DC3B03349A7A663AE058A73E /* Thermal.swift in Sources */,
 				884DF12251EA6E026900935A /* TopApps.swift in Sources */,
 				89FCDF389A7FA50973EA5206 /* Updater.swift in Sources */,
 			);

@@ -249,6 +249,7 @@ struct MainView: View {
                     .buttonStyle(CapsuleButtonStyle())
                 }
             }
+            ThermalLine(reading: model.thermal)
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
                     Text(state.list.title)
@@ -629,7 +630,7 @@ struct SettingsView: View {
 
     private var menuBar: some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader("Barra de menus", "Porcentagens ao lado do disco voador. Atualizam a cada 5 segundos.")
+            sectionHeader("Barra de menus", "Porcentagens e temperatura ao lado do disco voador. Atualizam a cada 5 segundos.")
 
             preview
 
@@ -644,6 +645,12 @@ struct SettingsView: View {
                     title: "Disco (HD)",
                     subtitle: "Quanto do Macintosh HD está ocupado, igual ao cartão Macintosh HD",
                     isOn: $settings.showDisk
+                )
+                Divider().padding(.leading, 12)
+                ToggleRow(
+                    title: "Temperatura (CPU)",
+                    subtitle: "A temperatura mais alta dos núcleos do chip, em °C",
+                    isOn: $settings.showTemperature
                 )
             }
             .groupBox()
@@ -1576,4 +1583,34 @@ struct UpdateStatus: View {
 
 private extension String {
     var capitalizedFirst: String { prefix(1).uppercased() + dropFirst() }
+}
+
+/// Temperatura do chip e da bateria, logo abaixo dos cartões.
+struct ThermalLine: View {
+    let reading: Thermal.Reading
+
+    private var tint: Color {
+        switch reading.state {
+        case .serious, .critical: .red
+        case .fair: .orange
+        default: .secondary
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "thermometer.medium").foregroundStyle(tint)
+            if let cpu = reading.cpu {
+                Text("CPU \(celsius(cpu))").fontWeight(.semibold)
+            }
+            if let battery = reading.battery {
+                Text("· Bateria \(celsius(battery))")
+            }
+            Text("· \(thermalLabel(reading.state).capitalizedFirst)").foregroundStyle(tint == .secondary ? .secondary : tint)
+            Spacer()
+        }
+        .font(.system(size: 12))
+        .monospacedDigit()
+        .padding(.leading, 4)
+    }
 }

@@ -8,6 +8,7 @@ final class StatsModel: ObservableObject {
     @Published var disk: (total: Int64, free: Int64) = (0, 0)
     @Published var memory: (total: Int64, used: Int64, pressure: Int32) = (0, 0, 1)
     @Published var apps: [TopApp] = []
+    @Published var thermal = Thermal.Reading(cpu: nil, battery: nil, state: .nominal)
     var appLimit = 5
     private var timer: Timer?
 
@@ -29,6 +30,7 @@ final class StatsModel: ObservableObject {
     func refresh() {
         disk = Metrics.disk()
         memory = Metrics.memory()
+        thermal = Thermal.read()
         apps = Sampler.topApps(limit: appLimit)
     }
 }
@@ -95,6 +97,10 @@ final class MenuBarSettings: ObservableObject {
         didSet { UserDefaults.standard.set(showDisk, forKey: "menuBarShowDisk") }
     }
 
+    @Published var showTemperature = MenuBarSettings.saved("menuBarShowTemperature", default: false) {
+        didSet { UserDefaults.standard.set(showTemperature, forKey: "menuBarShowTemperature") }
+    }
+
     private static func saved(_ key: String, default value: Bool) -> Bool {
         UserDefaults.standard.object(forKey: key) == nil ? value : UserDefaults.standard.bool(forKey: key)
     }
@@ -112,6 +118,9 @@ final class MenuBarSettings: ObservableObject {
             let fraction = disk.total > 0 ? Double(disk.total - disk.free) / Double(disk.total) : 0
             blocks.append(MenuBarBlock(label: "HD", fraction: fraction))
         }
+        if showTemperature, let cpu = Thermal.read().cpu {
+            blocks.append(MenuBarBlock(label: "CPU", fraction: cpu / 100, text: "\(Int(cpu.rounded()))°"))
+        }
         return blocks
     }
 }
@@ -119,8 +128,10 @@ final class MenuBarSettings: ObservableObject {
 struct MenuBarBlock {
     let label: String
     let fraction: Double
+    /// Texto no lugar da porcentagem (ex.: "52°" na temperatura).
+    var text: String? = nil
 
-    var value: String { "\(Int((fraction * 100).rounded()))%" }
+    var value: String { text ?? "\(Int((fraction * 100).rounded()))%" }
 }
 
 @MainActor
@@ -252,6 +263,7 @@ final class StatusController: NSObject, NSWindowDelegate {
         button.image = menuBarImage(MenuBarSettings.shared.blocks())
         button.toolTip = "Memória: \(ramGB(memory.used)) de \(ramGB(memory.total)) GB · \(pressureLabel(memory.pressure))\n"
             + "Macintosh HD: \(gb(disk.free)) GB livres"
+            + (Thermal.read().cpu.map { "\nCPU: \(celsius($0))" } ?? "")
     }
 }
 
